@@ -4,11 +4,18 @@
 #ifndef LIBMPHOTO_DEMUXER_DEMUXER_H_
 #define LIBMPHOTO_DEMUXER_DEMUXER_H_
 
-#include <string>
 #include <memory>
+#include <string>
+#include <tuple>
+#include <utility>
 
 #include "absl/status/status.h"
-#include "includes/demuxer/image_info.h"
+#include "libxml/parser.h"
+#include "libxml/tree.h"
+#include "libxml/xpath.h"
+#include "libxml/xpathInternals.h"
+#include "libmphoto/demuxer/image_info.h"
+#include "libmphoto/demuxer/libxml_deleter.h"
 
 namespace libmphoto {
 
@@ -20,7 +27,7 @@ class Demuxer {
   Demuxer();
 
   // Initializes the demuxer with a string of bytes representing a motion photo.
-  absl::Status Init(const std::string &motion_photo);
+  absl::Status Init(const absl::string_view motion_photo);
 
   // Sets image_info to the ImageInfo for the motion photo.
   absl::Status GetInfo(ImageInfo *image_info);
@@ -32,7 +39,7 @@ class Demuxer {
   absl::Status GetVideo(std::string *video);
 
  private:
-  const std::string &motion_photo_;
+  std::string motion_photo_;
   std::unique_ptr<ImageInfo> image_info_;
 };
 

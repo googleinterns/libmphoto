@@ -1,7 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-  name = "com_google_absl",
+  name = "absl",
   urls = ["https://github.com/abseil/abseil-cpp/archive/23f1f9cf6d02f834d55c0595566c0d607d4c5ed8.zip"],
   strip_prefix = "abseil-cpp-23f1f9cf6d02f834d55c0595566c0d607d4c5ed8",
 )
@@ -13,7 +13,17 @@ http_archive(
 )
 
 http_archive(
-  name = "com_google_googletest",
-  urls = ["https://github.com/google/googletest/archive/356f2d264a485db2fcc50ec1c672e0d37b6cb39b.zip"],
+  name = "googletest",
   strip_prefix = "googletest-356f2d264a485db2fcc50ec1c672e0d37b6cb39b",
+  urls = ["https://github.com/google/googletest/archive/356f2d264a485db2fcc50ec1c672e0d37b6cb39b.zip"],
+)
+
+http_archive(
+    name = "libxml",
+    build_file = "libxml.BUILD",
+    strip_prefix = "libxml2-2.9.7",
+    urls = [
+        "https://mirror.bazel.build/xmlsoft.org/sources/libxml2-2.9.7.tar.gz",
+        "http://xmlsoft.org/sources/libxml2-2.9.7.tar.gz",
+    ],
 )
