@@ -42,4 +42,18 @@ int main(int argc, char *argv[]) {
 
   // Print out image information
   std::cout << image_info.toString() << std::endl;
+
+  // Get still image file
+  std::string still;
+  demuxer.GetStill(&still);
+  std::ofstream out_still("still.jpg");
+  out_still << still;
+  out_still.close();
+
+  // Get video file
+  std::string video;
+  demuxer.GetVideo(&video);
+  std::ofstream out_video("video.mp4");
+  out_video << video;
+  out_video.close();
 }

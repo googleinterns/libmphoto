@@ -1,5 +1,5 @@
 cc_library(
     name = "common",
     hdrs = ["macros.h"],
-    visibility = ["//visibility:public"]
+    visibility = ["//libmphoto/demuxer:__pkg__"],
 )

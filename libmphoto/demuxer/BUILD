@@ -1,18 +1,18 @@
 cc_library(
     name = "demuxer",
     srcs = [
-        "demuxer.cc"
+        "demuxer.cc",
     ],
     hdrs = [
         "demuxer.h",
         "image_info.h",
-        "libxml_deleter.h"
+        "libxml_deleter.h",
     ],
+    copts = ["-std=c++14"],
+    visibility = ["//visibility:public"],
     deps = [
         "//libmphoto/common",
         "@absl//absl/status",
-        "@libxml//:libxml"
+        "@libxml",
     ],
-    copts = ["-std=c++14"],
-    visibility = ["//visibility:public"]
 )

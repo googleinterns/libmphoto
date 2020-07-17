@@ -119,9 +119,9 @@ MimeType GetMimeType(const std::string &input) {
   return MimeType::kUnknownMimeType;
 }
 
-absl::Status GetImageInfoFromMotionPhoto(
-    const xmlDoc &xml_doc, const xmlXPathContext &xpath_context,
-    ImageInfo *image_info) {
+absl::Status GetImageInfoFromMotionPhoto(const xmlDoc &xml_doc,
+                                         const xmlXPathContext &xpath_context,
+                                         ImageInfo *image_info) {
   std::string value;
 
   RETURN_IF_ERROR(
@@ -160,9 +160,9 @@ absl::Status GetImageInfoFromMotionPhoto(
   return absl::OkStatus();
 }
 
-absl::Status GetImageInfoFromMicrovideo(
-    const xmlDoc &xml_doc, const xmlXPathContext &xpath_context,
-    ImageInfo *image_info) {
+absl::Status GetImageInfoFromMicrovideo(const xmlDoc &xml_doc,
+                                        const xmlXPathContext &xpath_context,
+                                        ImageInfo *image_info) {
   std::string value;
 
   RETURN_IF_ERROR(GetXmlAttributeValue(kMicrovideoXPath, xpath_context, &value))
@@ -219,8 +219,7 @@ absl::Status GetImageInfo(const xmlDoc &xml_doc, ImageInfo *image_info) {
 
   // Check if xmp has field signifying it is a Motion Photo.
   if (GetXmlAttributeValue(kMotionPhotoXPath, *xpath_context, &value).ok()) {
-    return GetImageInfoFromMotionPhoto(xml_doc, *xpath_context,
-                                            image_info);
+    return GetImageInfoFromMotionPhoto(xml_doc, *xpath_context, image_info);
   }
 
   // Check if xmp has field signifying it is a Microvideo.
@@ -291,11 +290,31 @@ absl::Status Demuxer::GetInfo(ImageInfo *image_info) {
 }
 
 absl::Status Demuxer::GetStill(std::string *still) {
-  return absl::UnimplementedError("");
+  if (!still) {
+    return kOutPtrIsNullError;
+  }
+
+  if (!image_info_) {
+    return kDemuxerNotInitializedError;
+  }
+
+  *still = motion_photo_.substr(
+      0, motion_photo_.length() - image_info_->video_length);
+  return absl::OkStatus();
 }
 
 absl::Status Demuxer::GetVideo(std::string *video) {
-  return absl::UnimplementedError("");
+  if (!video) {
+    return kOutPtrIsNullError;
+  }
+
+  if (!image_info_) {
+    return kDemuxerNotInitializedError;
+  }
+
+  *video =
+      motion_photo_.substr(motion_photo_.length() - image_info_->video_length);
+  return absl::OkStatus();
 }
 
 }  // namespace libmphoto
