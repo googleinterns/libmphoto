@@ -19,10 +19,9 @@
 
 #include <memory>
 #include <string>
-#include <tuple>
-#include <utility>
 
 #include "absl/status/status.h"
+#include "absl/strings/string_view.h"
 #include "libxml/parser.h"
 #include "libxml/tree.h"
 #include "libxml/xpath.h"

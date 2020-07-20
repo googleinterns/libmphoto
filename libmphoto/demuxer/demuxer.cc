@@ -15,6 +15,8 @@
 #include "libmphoto/demuxer/demuxer.h"
 
 #include <map>
+#include <tuple>
+#include <utility>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/ascii.h"
