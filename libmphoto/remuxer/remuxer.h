@@ -25,24 +25,23 @@
 
 namespace libmphoto {
 
-// This class provides functionality for replacing/combining encoded media
-// streams in motion photos. Init must first be called before any other
-// class functions can be called.
+// This class provides functionality for replacing encoded media
+// streams in motion photos.
 class Remuxer {
  public:
   Remuxer();
 
-  // Initializes the demuxer with an optional existing motion_photo.
-  absl::Status Init(const std::string *motion_photo);
+  // Produces a motion photo from an existing one with the still image portion
+  // replaced with a new encoded stream.
+  absl::Status ReplaceStill(const absl::string_view new_still,
+                            const absl::string_view current_motion_photo,
+                            std::string *motion_photo);
 
-  // Replaces the still portion of a motion photo with a new encoded stream.
-  absl::Status SetStill(const absl::string_view still);
-
-  // Replaces the video portion of a motion photo with a new encoded stream.
-  absl::Status SetVideo(const absl::string_view video);
-
-  // Produces the bytes of the new motion photo with updated streams.
-  absl::Status GetMotionPhoto(std::string *motion_photo);
+  // Produces a motion photo from an existing one with the video portion
+  // replaced with a new encoded stream.
+  absl::Status ReplaceVideo(const absl::string_view new_video,
+                            const absl::string_view current_motion_photo,
+                            std::string *motion_photo);
 };
 
 }  // namespace libmphoto
