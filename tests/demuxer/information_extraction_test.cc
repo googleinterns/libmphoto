@@ -74,8 +74,27 @@ std::string GetPhotoBytesFromXmp(const std::string &xmp_metadata) {
 
 namespace libmphoto {
 
-TEST(InformationExtraction, CanParseValidMotionPhoto) {
-  std::string photo_bytes = GetBytesFromFile("sample_data/motionphoto.jpg");
+TEST(InformationExtraction, CanParseValidHeifMotionPhoto) {
+  std::string photo_bytes =
+      GetBytesFromFile("sample_data/motionphoto_heif.heic");
+
+  Demuxer demuxer;
+  ImageInfo image_info;
+
+  EXPECT_TRUE(demuxer.Init(photo_bytes).ok());
+  EXPECT_TRUE(demuxer.GetInfo(&image_info).ok());
+
+  EXPECT_EQ(image_info.motion_photo, 1);
+  EXPECT_EQ(image_info.motion_photo_version, 1);
+  EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 0);
+  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageHeif);
+  EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
+  EXPECT_EQ(image_info.video_length, 1544201);
+}
+
+TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
+  std::string photo_bytes =
+      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
 
   Demuxer demuxer;
   ImageInfo image_info;

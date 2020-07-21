@@ -22,11 +22,25 @@
 
 namespace libmphoto {
 
-TEST(StillDemuxing, CanDemuxAValidMotionPhoto) {
+TEST(StillDemuxing, CanDemuxAValidHeifMotionPhoto) {
   std::string motion_photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto.jpg");
+      GetBytesFromFile("sample_data/motionphoto_heif.heic");
   std::string correct_still_bytes =
-      GetBytesFromFile("sample_data/motionphoto_still.jpg");
+      GetBytesFromFile("sample_data/motionphoto_heif_still.heic");
+
+  Demuxer demuxer;
+  EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());
+
+  std::string demuxed_still_bytes;
+  EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes);
+}
+
+TEST(StillDemuxing, CanDemuxAValidJpegMotionPhoto) {
+  std::string motion_photo_bytes =
+      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+  std::string correct_still_bytes =
+      GetBytesFromFile("sample_data/motionphoto_jpeg_still.jpg");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());

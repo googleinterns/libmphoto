@@ -6,12 +6,7 @@ cc_test(
         "video_demuxing_test.cc",
     ],
     data = [
-        "//sample_data:microvideo.jpg",
-        "//sample_data:microvideo_still.jpg",
-        "//sample_data:microvideo_video.mp4",
-        "//sample_data:motionphoto.jpg",
-        "//sample_data:motionphoto_still.jpg",
-        "//sample_data:motionphoto_video.mp4",
+        "//sample_data",
     ],
     linkopts = [
         "-pthread",
