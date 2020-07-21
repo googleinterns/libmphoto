@@ -20,7 +20,12 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/ascii.h"
+#include "libxml/parser.h"
+#include "libxml/tree.h"
+#include "libxml/xpath.h"
+#include "libxml/xpathInternals.h"
 #include "libmphoto/common/macros.h"
+#include "libmphoto/demuxer/libxml_deleter.h"
 
 namespace libmphoto {
 
