@@ -112,19 +112,18 @@ absl::Status GetXmlAttributeValue(const std::string &xpath,
   return absl::OkStatus();
 }
 
-const std::map<std::string, MimeType> stringMimeType = {
+const std::map<std::string, MimeType> kStringToMimeType = {
     {"image/jpeg", MimeType::kImageJpeg},
     {"image/jpg", MimeType::kImageJpeg},
-    {"image/heif", MimeType::kImageHeif},
-    {"image/heic", MimeType::kImageHeif},
+    {"image/heic", MimeType::kImageHeic},
     {"video/mp4", MimeType::kVideoMp4}};
 
 MimeType GetMimeType(const std::string &input) {
   // Todo(pinheirojamie) do signature checks to validate mime types.
   std::string lower_case_input = absl::AsciiStrToLower(input);
 
-  if (stringMimeType.find(lower_case_input) != stringMimeType.end()) {
-    return stringMimeType.at(lower_case_input);
+  if (kStringToMimeType.find(lower_case_input) != kStringToMimeType.end()) {
+    return kStringToMimeType.at(lower_case_input);
   }
 
   return MimeType::kUnknownMimeType;

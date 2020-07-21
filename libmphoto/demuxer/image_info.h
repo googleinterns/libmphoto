@@ -25,12 +25,12 @@
 namespace libmphoto {
 
 // Different possible mime types for containers in motion photo.
-enum class MimeType { kUnknownMimeType = 0, kImageJpeg, kImageHeif, kVideoMp4 };
+enum class MimeType { kUnknownMimeType = 0, kImageJpeg, kImageHeic, kVideoMp4 };
 
-static const std::map<MimeType, std::string> MimeTypeStrings = {
+static const std::map<MimeType, std::string> kMimeTypeToString = {
     {MimeType::kUnknownMimeType, "unknown"},
     {MimeType::kImageJpeg, "image/jpeg"},
-    {MimeType::kImageHeif, "image/heif"},
+    {MimeType::kImageHeic, "image/heic"},
     {MimeType::kVideoMp4, "video/mp4"}};
 
 // This struct holds the metadata information from a motion photo.
@@ -66,8 +66,8 @@ struct ImageInfo {
         "Video Length: %d\n",
         motion_photo, motion_photo_version,
         motion_photo_presentation_timestamp_us,
-        MimeTypeStrings.at(image_mime_type),
-        MimeTypeStrings.at(video_mime_type), video_length);
+        kMimeTypeToString.at(image_mime_type),
+        kMimeTypeToString.at(video_mime_type), video_length);
   }
 };
 
