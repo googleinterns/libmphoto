@@ -19,16 +19,10 @@
 
 #include <memory>
 #include <string>
-#include <tuple>
-#include <utility>
 
 #include "absl/status/status.h"
-#include "libxml/parser.h"
-#include "libxml/tree.h"
-#include "libxml/xpath.h"
-#include "libxml/xpathInternals.h"
+#include "absl/strings/string_view.h"
 #include "libmphoto/demuxer/image_info.h"
-#include "libmphoto/demuxer/libxml_deleter.h"
 
 namespace libmphoto {
 
