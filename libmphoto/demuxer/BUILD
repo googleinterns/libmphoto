@@ -8,7 +8,6 @@ cc_library(
     hdrs = [
         "demuxer.h",
         "image_info.h",
-        "libxml_deleter.h",
     ],
     copts = ["-std=c++14"],
     visibility = ["//visibility:public"],

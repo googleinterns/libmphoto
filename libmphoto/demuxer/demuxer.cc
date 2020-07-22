@@ -25,7 +25,10 @@
 #include "libxml/xpath.h"
 #include "libxml/xpathInternals.h"
 #include "libmphoto/common/macros.h"
-#include "libmphoto/demuxer/libxml_deleter.h"
+#include "libmphoto/common/libxml_deleter.h"
+#include "libmphoto/common/xmp_io_helper.h"
+#include "libmphoto/common/jpeg_xmp_io_helper.h"
+#include "libmphoto/common/heic_xmp_io_helper.h"
 
 namespace libmphoto {
 
@@ -40,9 +43,6 @@ const absl::Status kOutPtrIsNullError =
 const absl::Status kIncorrectTypeError =
     absl::InvalidArgumentError("Incorrect xml attribute type");
 
-const char kStartXmpMetadata[] = "<x:xmpmeta";
-const char kEndXmpMetadata[] = "</x:xmpmeta>";
-
 const std::pair<const std::string, const std::string> kNamespaces[] = {
     {"x", "adobe:ns:meta/"},
     {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
@@ -52,51 +52,35 @@ const std::pair<const std::string, const std::string> kNamespaces[] = {
     {"GCamera", "http://ns.google.com/photos/1.0/camera/"}};
 
 // Motion Photo Spec metadata xpaths.
-const char kMotionPhotoXPath[] =
+constexpr char kMotionPhotoXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/@Camera:MotionPhoto";
-const char kMotionPhotoVersionXPath[] =
+constexpr char kMotionPhotoVersionXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/@Camera:MotionPhotoVersion";
-const char kMotionPhotoPresentationTimestampUsXPath[] =
+constexpr char kMotionPhotoPresentationTimestampUsXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/"
     "@Camera:MotionPhotoPresentationTimestampUs";
-const char kImageMimeTypeXPath[] =
+constexpr char kImageMimeTypeXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[1]/"
     "Container:Item/@Item:Mime";
-const char kVideoMimeTypeXPath[] =
+constexpr char kVideoMimeTypeXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[2]/"
     "Container:Item/@Item:Mime";
-const char kVideoLengthXPath[] =
+constexpr char kVideoLengthXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[2]/"
     "Container:Item/@Item:Length";
 
 // Microvideo (deprecated) metadata xpaths.
-const char kMicrovideoXPath[] =
+constexpr char kMicrovideoXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideo";
-const char kMicrovideoVersionXPath[] =
+constexpr char kMicrovideoVersionXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideoVersion";
-const char kMicrovideoOffsetXPath[] =
+constexpr char kMicrovideoOffsetXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideoOffset";
-const char kMicrovideoPresentationTimestampUsXPath[] =
+constexpr char kMicrovideoPresentationTimestampUsXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/"
     "@GCamera:MicroVideoPresentationTimestampUs";
-const MimeType kMicrovideoImageMimeType = MimeType::kImageJpeg;
-const MimeType kMicrovideoVideoMimeType = MimeType::kVideoMp4;
-
-std::unique_ptr<xmlDoc, LibXmlDeleter> FindAndParseXmp(
-    const std::string &file) {
-  // Search for the start and end tags of xmp metadata in the file.
-  std::size_t start_pos = file.find(kStartXmpMetadata);
-  std::size_t end_pos = file.find(kEndXmpMetadata) + strlen(kEndXmpMetadata);
-
-  if (start_pos == std::string::npos || end_pos == std::string::npos) {
-    return nullptr;
-  }
-
-  std::string xmp_data = file.substr(start_pos, end_pos + 1);
-
-  return std::unique_ptr<xmlDoc, LibXmlDeleter>(
-      xmlReadMemory(xmp_data.c_str(), end_pos - start_pos, ".xml", nullptr, 0));
-}
+constexpr MimeType kMicrovideoImageMimeType = MimeType::kImageJpeg;
+constexpr MimeType kMicrovideoVideoMimeType = MimeType::kVideoMp4;
 
 absl::Status GetXmlAttributeValue(const std::string &xpath,
                                   const xmlXPathContext &xpath_context,
@@ -280,8 +264,14 @@ absl::Status Demuxer::Init(const absl::string_view motion_photo) {
   motion_photo_ = std::string(motion_photo);
   image_info_ = std::make_unique<ImageInfo>();
 
+  std::unique_ptr<IXmpIOHelper> xmp_helper = GetXmpHelper(motion_photo_);
+
+  if (!xmp_helper) {
+    return absl::InvalidArgumentError("Failed to parse file as jpeg or heic");
+  }
+
   std::unique_ptr<xmlDoc, LibXmlDeleter> xml_doc =
-      FindAndParseXmp(motion_photo_);
+      xmp_helper->GetXmp(motion_photo_);
 
   if (!xml_doc) {
     return absl::InvalidArgumentError("Failed to find and parse xmp data");

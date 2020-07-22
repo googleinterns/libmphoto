@@ -18,6 +18,8 @@
 #include "libmphoto/demuxer/image_info.h"
 #include "tests/common/io_helper.h"
 
+namespace libmphoto {
+
 namespace {
 
 // Generates motion photo xmp metadata based on inputs.
@@ -64,15 +66,25 @@ std::string GetXmp(const std::string &motion_photo,
       video_meme_type, video_length);
 }
 
-// Returns the bytes for a motion photo with the xmp metadata embedded inside.
+constexpr char kStartXmpMetadata[] = "<x:xmpmeta";
+constexpr char kEndXmpMetadata[] = "</x:xmpmeta>";
+
+// Returns the bytes for a jpeg motion photo with the xmp metadata embedded
+// inside.
 std::string GetPhotoBytesFromXmp(const std::string &xmp_metadata) {
-  char pre_xmp_bytes[1000], post_xmp_bytes[5000];
-  return pre_xmp_bytes + xmp_metadata + post_xmp_bytes;
+  // Find the xmp metadata in a valid motion photo and replace it with the
+  // provided metadata.
+  std::string motion_photo =
+      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+  std::size_t start_pos = motion_photo.find(kStartXmpMetadata);
+  std::size_t end_pos =
+      motion_photo.find(kEndXmpMetadata) + strlen(kEndXmpMetadata);
+
+  return motion_photo.substr(0, start_pos) + xmp_metadata +
+         motion_photo.substr(end_pos);
 }
 
 }  // namespace
-
-namespace libmphoto {
 
 TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
   std::string photo_bytes =

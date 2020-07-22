@@ -27,3 +27,10 @@ http_archive(
         "http://xmlsoft.org/sources/libxml2-2.9.7.tar.gz",
     ],
 )
+
+http_archive(
+    name = "xmpmeta",
+    build_file = "xmpmeta.BUILD",
+    strip_prefix = "xmpmeta-73671eccaef4879bb89fa98ee3e50514760f6c97",
+    urls = ["https://github.com/google/xmpmeta/archive/73671eccaef4879bb89fa98ee3e50514760f6c97.zip"],
+)

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef LIBMPHOTO_DEMUXER_LIBXML_DELETER_H_
-#define LIBMPHOTO_DEMUXER_LIBXML_DELETER_H_
+#ifndef LIBMPHOTO_COMMON_LIBXML_DELETER_H_
+#define LIBMPHOTO_COMMON_LIBXML_DELETER_H_
 
 #include "libxml/parser.h"
 #include "libxml/tree.h"
@@ -36,4 +36,4 @@ struct LibXmlDeleter {
 
 }  // namespace libmphoto
 
-#endif  // LIBMPHOTO_DEMUXER_LIBXML_DELETER_H_
+#endif  // LIBMPHOTO_COMMON_LIBXML_DELETER_H_
