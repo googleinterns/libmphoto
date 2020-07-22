@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
 genrule(
     name = "gen_configure",
     srcs = [
@@ -107,7 +109,10 @@ cc_library(
         ".",
         "include",
     ],
-    linkopts = ["-pthread", "-lz"],
+    linkopts = [
+        "-pthread",
+        "-lz",
+    ],
     textual_hdrs = ["trionan.c"],
     visibility = ["//visibility:public"],
 )
