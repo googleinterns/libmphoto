@@ -19,6 +19,7 @@
 #include "absl/status/status.h"
 #include "libmphoto/demuxer/demuxer.h"
 #include "libmphoto/demuxer/image_info.h"
+#include "samples/macros.h"
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
@@ -32,38 +33,30 @@ int main(int argc, char *argv[]) {
   std::streampos length = file.tellg();
   file.seekg(0, std::ios::beg);
   std::vector<uint8_t> data(length);
-  file.read((char *)data.data(), length);
+  file.read(reinterpret_cast<char *>(data.data()), length);
   std::string file_bytes(data.begin(), data.end());
 
   // Initialize demuxer
   libmphoto::Demuxer demuxer;
-  absl::Status status = demuxer.Init(file_bytes);
-  if (!status.ok()) {
-    std::cout << status << std::endl;
-    return -1;
-  }
+  TERMINATE_IF_ERROR(demuxer.Init(file_bytes))
 
   // Get image info
   libmphoto::ImageInfo image_info;
-  status = demuxer.GetInfo(&image_info);
-  if (!status.ok()) {
-    std::cout << status << std::endl;
-    return -1;
-  }
+  TERMINATE_IF_ERROR(demuxer.GetInfo(&image_info))
 
   // Print out image information
   std::cout << image_info.toString() << std::endl;
 
   // Get still image file
   std::string still;
-  demuxer.GetStill(&still);
+  TERMINATE_IF_ERROR(demuxer.GetStill(&still));
   std::ofstream out_still("still.jpg");
   out_still << still;
   out_still.close();
 
   // Get video file
   std::string video;
-  demuxer.GetVideo(&video);
+  TERMINATE_IF_ERROR(demuxer.GetVideo(&video));
   std::ofstream out_video("video.mp4");
   out_video << video;
   out_video.close();
