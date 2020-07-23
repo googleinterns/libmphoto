@@ -1,9 +1,19 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 cc_binary(
     name = "demux",
-    srcs = ["demux.cc"],
+    srcs = [
+        "demux.cc",
+    ],
     deps = [
-        "//libmphoto",
+        ":samples",
+        "//libmphoto/demuxer",
+    ],
+)
+
+cc_library(
+    name = "samples",
+    hdrs = [
+        "macros.h",
     ],
 )
