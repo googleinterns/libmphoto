@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libmphoto/common/heic_xmp_io_helper.h"
+#include "libmphoto/common/xmp_io/heic_xmp_io_helper.h"
 
 #include "libxml/parser.h"
 
@@ -25,28 +25,29 @@ constexpr char kEndXmpMetadata[] = "</x:xmpmeta>";
 
 }  // namespace
 
-// Search for the start and end tags of xmp metadata anywhere in the file. If
+// Search for the start and end tags of xmp metadata anywhere in the image. If
 // found, attempts to parse it with libxml.
 std::unique_ptr<xmlDoc, LibXmlDeleter> HeicXmpIOHelper::GetXmp(
-    const std::string &motion_photo) {
-  std::size_t start_pos = motion_photo.find(kStartXmpMetadata);
-  std::size_t end_pos =
-      motion_photo.find(kEndXmpMetadata) + strlen(kEndXmpMetadata);
+    const std::string &image) {
+  std::size_t start_pos = image.find(kStartXmpMetadata);
+  std::size_t end_pos = image.find(kEndXmpMetadata) + strlen(kEndXmpMetadata);
 
   if (start_pos == std::string::npos || end_pos == std::string::npos) {
     return nullptr;
   }
 
-  std::string xmp_data = motion_photo.substr(start_pos, end_pos + 1);
+  std::string xmp_data = image.substr(start_pos, end_pos + 1);
 
   return std::unique_ptr<xmlDoc, LibXmlDeleter>(
       xmlReadMemory(xmp_data.c_str(), end_pos - start_pos, ".xml", nullptr, 0));
 }
 
 absl::Status HeicXmpIOHelper::SetXmp(const xmlDoc &xml_doc,
-                                     const std::string &motion_photo,
-                                     std::string *updated_motion_photo) {
+                                     const std::string &image,
+                                     std::string *updated_image) {
   return absl::UnimplementedError("");
 }
+
+MimeType HeicXmpIOHelper::GetMimeType() { return MimeType::kImageHeic; }
 
 }  // namespace libmphoto

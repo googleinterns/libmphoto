@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef LIBMPHOTO_COMMON_XMP_IO_HELPER_H_
-#define LIBMPHOTO_COMMON_XMP_IO_HELPER_H_
+#ifndef LIBMPHOTO_COMMON_XMP_IO_JPEG_XMP_IO_HELPER_H_
+#define LIBMPHOTO_COMMON_XMP_IO_JPEG_XMP_IO_HELPER_H_
 
 #include <memory>
 #include <string>
@@ -23,29 +23,27 @@
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "libxml/tree.h"
-#include "libmphoto/common/libxml_deleter.h"
+#include "libmphoto/common/xmp_io/xmp_io_helper.h"
+#include "libmphoto/common/xml/libxml_deleter.h"
 
 namespace libmphoto {
 
-// This interface provides a basic contract for reading/writing xmp metadata
-// from motion photos. It's to be implemented for a specific motion photo format
-// (ie. jpeg or heic).
-class IXmpIOHelper {
+// This class provides enables reading/writing xmp metadata for jpeg images.
+class JpegXmpIOHelper : public IXmpIOHelper {
  public:
   // Finds and parses out the xmp metadata returning the xml doc. Returns
   // nullptr if not not found.
   virtual std::unique_ptr<xmlDoc, LibXmlDeleter> GetXmp(
-      const std::string &motion_photo) = 0;
+      const std::string &image);
 
   // Replaces the xmp metadata with the provided metadata.
-  virtual absl::Status SetXmp(const xmlDoc &xml_doc,
-                              const std::string &motion_photo,
-                              std::string *updated_motion_photo) = 0;
-};
+  virtual absl::Status SetXmp(const xmlDoc &xml_doc, const std::string &image,
+                              std::string *updated_image);
 
-// Returns the appropriate xmp helper for a given motion photo.
-std::unique_ptr<IXmpIOHelper> GetXmpHelper(const std::string &motion_photo);
+  // Gets the mime type this xmp helper is implemented for.
+  virtual MimeType GetMimeType();
+};
 
 }  // namespace libmphoto
 
-#endif  // LIBMPHOTO_COMMON_XMP_IO_HELPER_H_
+#endif  // LIBMPHOTO_COMMON_XMP_IO_JPEG_XMP_IO_HELPER_H_

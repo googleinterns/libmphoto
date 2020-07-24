@@ -2,22 +2,28 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "common",
-    srcs = [
-        "heic_xmp_io_helper.cc",
-        "jpeg_xmp_io_helper.cc",
-        "xmp_io_helper.cc",
-    ],
     hdrs = [
-        "heic_xmp_io_helper.h",
-        "jpeg_xmp_io_helper.h",
-        "libxml_deleter.h",
         "macros.h",
-        "xmp_io_helper.h",
+        "xmp_field_paths.h",
     ],
-    visibility = ["//libmphoto/demuxer:__pkg__"],
+    visibility = [
+        "//libmphoto/demuxer:__pkg__",
+        "//libmphoto/remuxer:__pkg__",
+    ],
     deps = [
+        "//libmphoto/common:mime_type",
+        "//libmphoto/common/xml",
+        "//libmphoto/common/xmp_io",
         "@absl//absl/status",
         "@libxml",
         "@xmpmeta",
     ],
+)
+
+cc_library(
+    name = "mime_type",
+    hdrs = [
+        "mime_type.h",
+    ],
+    visibility = ["//visibility:public"],
 )

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libmphoto/common/jpeg_xmp_io_helper.h"
+#include "libmphoto/common/xmp_io/jpeg_xmp_io_helper.h"
 
 #include <sstream>
 
@@ -23,10 +23,10 @@
 namespace libmphoto {
 
 std::unique_ptr<xmlDoc, LibXmlDeleter> JpegXmpIOHelper::GetXmp(
-    const std::string &motion_photo) {
+    const std::string &image) {
   xmpmeta::XmpData xmp_data;
 
-  if (!xmpmeta::ReadXmpFromMemory(motion_photo, true, &xmp_data)) {
+  if (!xmpmeta::ReadXmpFromMemory(image, true, &xmp_data)) {
     return nullptr;
   }
 
@@ -38,13 +38,13 @@ std::unique_ptr<xmlDoc, LibXmlDeleter> JpegXmpIOHelper::GetXmp(
 }
 
 absl::Status JpegXmpIOHelper::SetXmp(const xmlDoc &xml_doc,
-                                     const std::string &motion_photo,
-                                     std::string *updated_motion_photo) {
+                                     const std::string &image,
+                                     std::string *updated_image) {
   xmpmeta::XmpData xmp_data;
 
   *xmp_data.MutableStandardSection() = const_cast<xmlDoc *>(&xml_doc);
 
-  std::istringstream istream(motion_photo);
+  std::istringstream istream(image);
   std::ostringstream ostream;
 
   if (!xmpmeta::AddXmpMetaToJpegStream(&istream, xmp_data, &ostream)) {
@@ -54,8 +54,10 @@ absl::Status JpegXmpIOHelper::SetXmp(const xmlDoc &xml_doc,
   // Take back ownership of the xmlDoc passed in to xmpmeta.
   *xmp_data.MutableStandardSection() = nullptr;
 
-  *updated_motion_photo = ostream.str();
+  *updated_image = ostream.str();
   return absl::OkStatus();
 }
+
+MimeType JpegXmpIOHelper::GetMimeType() { return MimeType::kImageJpeg; }
 
 }  // namespace libmphoto

@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-#ifndef LIBMPHOTO_COMMON_LIBXML_DELETER_H_
-#define LIBMPHOTO_COMMON_LIBXML_DELETER_H_
+#ifndef LIBMPHOTO_COMMON_MIME_TYPE_H_
+#define LIBMPHOTO_COMMON_MIME_TYPE_H_
 
-#include "libxml/parser.h"
-#include "libxml/tree.h"
-#include "libxml/xpath.h"
-#include "libxml/xpathInternals.h"
+#include <string>
+#include <map>
 
 namespace libmphoto {
 
-struct LibXmlDeleter {
-  void operator()(xmlDocPtr xml_doc) { xmlFreeDoc(xml_doc); }
-  void operator()(xmlXPathContextPtr xpath_context) {
-    xmlXPathFreeContext(xpath_context);
-  }
-  void operator()(xmlXPathObjectPtr xpath_object) {
-    xmlXPathFreeObject(xpath_object);
-  }
-};
+// Different possible mime types for containers in motion photo.
+enum class MimeType { kUnknownMimeType = 0, kImageJpeg, kImageHeic, kVideoMp4 };
+
+static const std::map<MimeType, std::string> kMimeTypeToString = {
+    {MimeType::kUnknownMimeType, "unknown"},
+    {MimeType::kImageJpeg, "image/jpeg"},
+    {MimeType::kImageHeic, "image/heic"},
+    {MimeType::kVideoMp4, "video/mp4"}};
 
 }  // namespace libmphoto
 
-#endif  // LIBMPHOTO_COMMON_LIBXML_DELETER_H_
+#endif  // LIBMPHOTO_COMMON_MIME_TYPE_H_

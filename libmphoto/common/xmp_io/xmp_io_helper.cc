@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "libmphoto/common/xmp_io_helper.h"
+#include "libmphoto/common/xmp_io/xmp_io_helper.h"
 
 #include <vector>
 #include <algorithm>
 
 #include "absl/strings/string_view.h"
-#include "libmphoto/common/jpeg_xmp_io_helper.h"
-#include "libmphoto/common/heic_xmp_io_helper.h"
+#include "libmphoto/common/xmp_io/jpeg_xmp_io_helper.h"
+#include "libmphoto/common/xmp_io/heic_xmp_io_helper.h"
 
 namespace libmphoto {
 
@@ -30,14 +30,14 @@ const std::vector<const char *> kHeicFtyps = {
 
 }  // namespace
 
-std::unique_ptr<IXmpIOHelper> GetXmpHelper(const std::string &motion_photo) {
+std::unique_ptr<IXmpIOHelper> GetXmpIOHelper(const std::string &image) {
   // Check for FF D8 jpeg header.
-  if (motion_photo.at(0) == '\377' && motion_photo.at(1) == '\330') {
+  if (image.at(0) == '\377' && image.at(1) == '\330') {
     return absl::make_unique<JpegXmpIOHelper>();
   }
 
   // Search in first 16 bytes.
-  absl::string_view header = absl::string_view(motion_photo.data(), 16);
+  absl::string_view header = absl::string_view(image.data(), 16);
 
   // Check if any of the heic ftyps are present in header.
   if (std::any_of(kHeicFtyps.begin(), kHeicFtyps.end(),
