@@ -11,6 +11,17 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "remux",
+    srcs = [
+        "remux.cc",
+    ],
+    deps = [
+        ":samples",
+        "//libmphoto/remuxer",
+    ],
+)
+
 cc_library(
     name = "samples",
     hdrs = [

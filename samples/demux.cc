@@ -27,34 +27,31 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // Read entire file into memory
+  // Read entire file into memory.
   std::ifstream file(argv[1], std::ifstream::in | std::ifstream::binary);
-  file.seekg(0, std::ios::end);
-  std::streampos length = file.tellg();
-  file.seekg(0, std::ios::beg);
-  std::vector<uint8_t> data(length);
-  file.read(reinterpret_cast<char *>(data.data()), length);
-  std::string file_bytes(data.begin(), data.end());
+  std::ostringstream ostream;
+  ostream << file.rdbuf();
+  std::string file_bytes(ostream.str());
 
-  // Initialize demuxer
+  // Initialize demuxer.
   libmphoto::Demuxer demuxer;
   TERMINATE_IF_ERROR(demuxer.Init(file_bytes))
 
-  // Get image info
+  // Get image info.
   libmphoto::ImageInfo image_info;
   TERMINATE_IF_ERROR(demuxer.GetInfo(&image_info))
 
-  // Print out image information
+  // Print out image information.
   std::cout << image_info.toString() << std::endl;
 
-  // Get still image file
+  // Get still image file.
   std::string still;
   TERMINATE_IF_ERROR(demuxer.GetStill(&still));
-  std::ofstream out_still("still.jpg");
+  std::ofstream out_still("still.jpeg");
   out_still << still;
   out_still.close();
 
-  // Get video file
+  // Get video file.
   std::string video;
   TERMINATE_IF_ERROR(demuxer.GetVideo(&video));
   std::ofstream out_video("video.mp4");
