@@ -21,17 +21,9 @@
 #include <map>
 
 #include "absl/strings/str_format.h"
+#include "libmphoto/common/mime_type.h"
 
 namespace libmphoto {
-
-// Different possible mime types for containers in motion photo.
-enum class MimeType { kUnknownMimeType = 0, kImageJpeg, kImageHeic, kVideoMp4 };
-
-static const std::map<MimeType, std::string> kMimeTypeToString = {
-    {MimeType::kUnknownMimeType, "unknown"},
-    {MimeType::kImageJpeg, "image/jpeg"},
-    {MimeType::kImageHeic, "image/heic"},
-    {MimeType::kVideoMp4, "video/mp4"}};
 
 // This struct holds the metadata information from a motion photo.
 struct ImageInfo {

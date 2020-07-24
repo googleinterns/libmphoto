@@ -22,6 +22,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
+#include "libmphoto/common/xmp_io/xmp_io_helper.h"
 
 namespace libmphoto {
 
@@ -44,6 +45,12 @@ class Remuxer {
  private:
   std::string still_;
   std::string video_;
+  std::unique_ptr<IXmpIOHelper> xmp_io_helper_;
+
+  absl::Status UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
+                                    xmlDoc *xml_doc);
+  absl::Status UpdateXmpMicrovideo(xmlXPathContext *xpath_context,
+                                   xmlDoc *xml_doc);
 };
 
 }  // namespace libmphoto

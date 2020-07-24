@@ -75,7 +75,7 @@ std::string GetPhotoBytesFromXmp(const std::string &xmp_metadata) {
   // Find the xmp metadata in a valid motion photo and replace it with the
   // provided metadata.
   std::string motion_photo =
-      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/motion_photo.jpeg");
   std::size_t start_pos = motion_photo.find(kStartXmpMetadata);
   std::size_t end_pos =
       motion_photo.find(kEndXmpMetadata) + strlen(kEndXmpMetadata);
@@ -88,7 +88,7 @@ std::string GetPhotoBytesFromXmp(const std::string &xmp_metadata) {
 
 TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
   std::string photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_heic.heic");
+      GetBytesFromFile("sample_data/heic_motion_photo/motion_photo.heic");
 
   Demuxer demuxer;
   ImageInfo image_info;
@@ -106,7 +106,7 @@ TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
 
 TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
   std::string photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/motion_photo.jpeg");
 
   Demuxer demuxer;
   ImageInfo image_info;
@@ -123,7 +123,8 @@ TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
 }
 
 TEST(InformationExtraction, CanParseValidMicrovideo) {
-  std::string photo_bytes = GetBytesFromFile("sample_data/microvideo.jpg");
+  std::string photo_bytes =
+      GetBytesFromFile("sample_data/microvideo/microvideo.jpeg");
 
   Demuxer demuxer;
   ImageInfo image_info;

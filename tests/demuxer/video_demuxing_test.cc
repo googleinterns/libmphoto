@@ -24,43 +24,44 @@ namespace libmphoto {
 
 TEST(VideoDemuxing, CanDemuxAValidHeicMotionPhoto) {
   std::string motion_photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_heic.heic");
+      GetBytesFromFile("sample_data/heic_motion_photo/motion_photo.heic");
   std::string correct_video_bytes =
-      GetBytesFromFile("sample_data/motionphoto_heic_video.mp4");
+      GetBytesFromFile("sample_data/heic_motion_photo/video.mp4");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());
 
   std::string demuxed_video_bytes;
   EXPECT_TRUE(demuxer.GetVideo(&demuxed_video_bytes).ok());
-  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes);
+  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes) << "Bytes differ";
 }
 
 TEST(VideoDemuxing, CanDemuxAValidJpegMotionPhoto) {
   std::string motion_photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/motion_photo.jpeg");
   std::string correct_video_bytes =
-      GetBytesFromFile("sample_data/motionphoto_jpeg_video.mp4");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/video.mp4");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());
 
   std::string demuxed_video_bytes;
   EXPECT_TRUE(demuxer.GetVideo(&demuxed_video_bytes).ok());
-  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes);
+  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes) << "Bytes differ";
 }
 
 TEST(VideoDemuxing, CanDemuxAValidMicrovideo) {
-  std::string microvideo_bytes = GetBytesFromFile("sample_data/microvideo.jpg");
+  std::string microvideo_bytes =
+      GetBytesFromFile("sample_data/microvideo/microvideo.jpeg");
   std::string correct_video_bytes =
-      GetBytesFromFile("sample_data/microvideo_video.mp4");
+      GetBytesFromFile("sample_data/microvideo/video.mp4");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(microvideo_bytes).ok());
 
   std::string demuxed_video_bytes;
   EXPECT_TRUE(demuxer.GetVideo(&demuxed_video_bytes).ok());
-  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes);
+  EXPECT_EQ(demuxed_video_bytes, correct_video_bytes) << "Bytes differ";
 }
 
 TEST(VideoDemuxing, CanFailWhenDemuxerNotInitialzed) {

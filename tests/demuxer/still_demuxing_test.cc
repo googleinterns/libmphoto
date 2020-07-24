@@ -24,43 +24,44 @@ namespace libmphoto {
 
 TEST(StillDemuxing, CanDemuxAValidHeicMotionPhoto) {
   std::string motion_photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_heic.heic");
+      GetBytesFromFile("sample_data/heic_motion_photo/motion_photo.heic");
   std::string correct_still_bytes =
-      GetBytesFromFile("sample_data/motionphoto_heic_still.heic");
+      GetBytesFromFile("sample_data/heic_motion_photo/still.heic");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanDemuxAValidJpegMotionPhoto) {
   std::string motion_photo_bytes =
-      GetBytesFromFile("sample_data/motionphoto_jpeg.jpg");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/motion_photo.jpeg");
   std::string correct_still_bytes =
-      GetBytesFromFile("sample_data/motionphoto_jpeg_still.jpg");
+      GetBytesFromFile("sample_data/jpeg_motion_photo/still.jpeg");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo_bytes).ok());
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanDemuxAValidMicrovideo) {
-  std::string microvideo_bytes = GetBytesFromFile("sample_data/microvideo.jpg");
+  std::string microvideo_bytes =
+      GetBytesFromFile("sample_data/microvideo/microvideo.jpeg");
   std::string correct_still_bytes =
-      GetBytesFromFile("sample_data/microvideo_still.jpg");
+      GetBytesFromFile("sample_data/microvideo/still.jpeg");
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(microvideo_bytes).ok());
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanFailWhenDemuxerNotInitialzed) {
