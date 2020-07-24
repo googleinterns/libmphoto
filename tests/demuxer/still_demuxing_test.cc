@@ -33,7 +33,7 @@ TEST(StillDemuxing, CanDemuxAValidHeicMotionPhoto) {
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_TRUE(demuxed_still_bytes == correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanDemuxAValidJpegMotionPhoto) {
@@ -47,7 +47,7 @@ TEST(StillDemuxing, CanDemuxAValidJpegMotionPhoto) {
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_TRUE(demuxed_still_bytes == correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanDemuxAValidMicrovideo) {
@@ -61,7 +61,7 @@ TEST(StillDemuxing, CanDemuxAValidMicrovideo) {
 
   std::string demuxed_still_bytes;
   EXPECT_TRUE(demuxer.GetStill(&demuxed_still_bytes).ok());
-  EXPECT_TRUE(demuxed_still_bytes == correct_still_bytes);
+  EXPECT_EQ(demuxed_still_bytes, correct_still_bytes) << "Bytes differ";
 }
 
 TEST(StillDemuxing, CanFailWhenDemuxerNotInitialzed) {

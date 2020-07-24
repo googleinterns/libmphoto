@@ -37,7 +37,7 @@ TEST(JpegRemuxing, CanRemuxWithNoExistingXmp) {
   std::string expected_remuxed_bytes =
       GetBytesFromFile("sample_data/remuxed/jpeg/no_xmp.jpeg");
 
-  EXPECT_TRUE(motion_photo == expected_remuxed_bytes);
+  EXPECT_EQ(motion_photo, expected_remuxed_bytes) << "Bytes differ";
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo).ok());
@@ -68,7 +68,7 @@ TEST(JpegRemuxing, CanRemuxWithOnlyMotionPhotoXmp) {
   std::string expected_remuxed_bytes =
       GetBytesFromFile("sample_data/remuxed/jpeg/motion_photo_xmp.jpeg");
 
-  EXPECT_TRUE(motion_photo == expected_remuxed_bytes);
+  EXPECT_EQ(motion_photo, expected_remuxed_bytes) << "Bytes differ";
 
   Demuxer demuxer;
   EXPECT_TRUE(demuxer.Init(motion_photo).ok());
