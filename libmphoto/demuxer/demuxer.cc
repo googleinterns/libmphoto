@@ -20,15 +20,11 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/ascii.h"
-#include "libxml/parser.h"
-#include "libxml/tree.h"
-#include "libxml/xpath.h"
-#include "libxml/xpathInternals.h"
 #include "libmphoto/common/macros.h"
-#include "libmphoto/common/libxml_deleter.h"
-#include "libmphoto/common/xmp_io_helper.h"
-#include "libmphoto/common/jpeg_xmp_io_helper.h"
-#include "libmphoto/common/heic_xmp_io_helper.h"
+#include "libmphoto/common/xmp_field_paths.h"
+#include "libmphoto/common/xml/libxml_deleter.h"
+#include "libmphoto/common/xml/xml_utils.h"
+#include "libmphoto/common/xmp_io/xmp_io_helper.h"
 
 namespace libmphoto {
 
@@ -42,66 +38,6 @@ const absl::Status kOutPtrIsNullError =
     absl::InvalidArgumentError("Out Pointer is null");
 const absl::Status kIncorrectTypeError =
     absl::InvalidArgumentError("Incorrect xml attribute type");
-
-const std::pair<const std::string, const std::string> kNamespaces[] = {
-    {"x", "adobe:ns:meta/"},
-    {"rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
-    {"Camera", "http://ns.google.com/photos/1.0/camera/"},
-    {"Container", "http://ns.google.com/photos/1.0/container/"},
-    {"Item", "http://ns.google.com/photos/1.0/container/item/"},
-    {"GCamera", "http://ns.google.com/photos/1.0/camera/"}};
-
-// Motion Photo Spec metadata xpaths.
-constexpr char kMotionPhotoXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/@Camera:MotionPhoto";
-constexpr char kMotionPhotoVersionXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/@Camera:MotionPhotoVersion";
-constexpr char kMotionPhotoPresentationTimestampUsXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/"
-    "@Camera:MotionPhotoPresentationTimestampUs";
-constexpr char kImageMimeTypeXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[1]/"
-    "Container:Item/@Item:Mime";
-constexpr char kVideoMimeTypeXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[2]/"
-    "Container:Item/@Item:Mime";
-constexpr char kVideoLengthXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[2]/"
-    "Container:Item/@Item:Length";
-
-// Microvideo (deprecated) metadata xpaths.
-constexpr char kMicrovideoXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideo";
-constexpr char kMicrovideoVersionXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideoVersion";
-constexpr char kMicrovideoOffsetXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/@GCamera:MicroVideoOffset";
-constexpr char kMicrovideoPresentationTimestampUsXPath[] =
-    "/x:xmpmeta/rdf:RDF/rdf:Description/"
-    "@GCamera:MicroVideoPresentationTimestampUs";
-constexpr MimeType kMicrovideoImageMimeType = MimeType::kImageJpeg;
-constexpr MimeType kMicrovideoVideoMimeType = MimeType::kVideoMp4;
-
-absl::Status GetXmlAttributeValue(const std::string &xpath,
-                                  const xmlXPathContext &xpath_context,
-                                  std::string *result) {
-  std::unique_ptr<xmlXPathObject, LibXmlDeleter> xpath_object(
-      xmlXPathEvalExpression(reinterpret_cast<const xmlChar *>(xpath.c_str()),
-                             const_cast<xmlXPathContext *>(&xpath_context)));
-
-  if (!xpath_object || !xpath_object->nodesetval ||
-      !xpath_object->nodesetval->nodeTab ||
-      !xpath_object->nodesetval->nodeTab[0]->children ||
-      !xpath_object->nodesetval->nodeTab[0]->children->content) {
-    return absl::NotFoundError("No value found for xpath: " + xpath);
-  }
-
-  // The value is the content of the first child of the result.
-  *result = std::string(reinterpret_cast<char *>(
-      xpath_object->nodesetval->nodeTab[0]->children->content));
-
-  return absl::OkStatus();
-}
 
 const std::map<std::string, MimeType> kStringToMimeType = {
     {"image/jpeg", MimeType::kImageJpeg},
@@ -126,34 +62,34 @@ absl::Status GetImageInfoFromMotionPhoto(const xmlDoc &xml_doc,
   std::string value;
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kMotionPhotoXPath, xpath_context, &value))
+      GetXmlAttributeValue(kMotionPhotoXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->motion_photo)) {
     return kIncorrectTypeError;
   }
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kMotionPhotoVersionXPath, xpath_context, &value))
+      GetXmlAttributeValue(kMotionPhotoVersionXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->motion_photo_version)) {
     return kIncorrectTypeError;
   }
 
   RETURN_IF_ERROR(GetXmlAttributeValue(kMotionPhotoPresentationTimestampUsXPath,
-                                       xpath_context, &value))
+                                       xpath_context, &value));
   if (!absl::SimpleAtoi(value,
                         &image_info->motion_photo_presentation_timestamp_us)) {
     return kIncorrectTypeError;
   }
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kImageMimeTypeXPath, xpath_context, &value))
+      GetXmlAttributeValue(kImageMimeTypeXPath, xpath_context, &value));
   image_info->image_mime_type = GetMimeType(value);
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kVideoMimeTypeXPath, xpath_context, &value))
+      GetXmlAttributeValue(kVideoMimeTypeXPath, xpath_context, &value));
   image_info->video_mime_type = GetMimeType(value);
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kVideoLengthXPath, xpath_context, &value))
+      GetXmlAttributeValue(kVideoLengthXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->video_length)) {
     return kIncorrectTypeError;
   }
@@ -166,30 +102,31 @@ absl::Status GetImageInfoFromMicrovideo(const xmlDoc &xml_doc,
                                         ImageInfo *image_info) {
   std::string value;
 
-  RETURN_IF_ERROR(GetXmlAttributeValue(kMicrovideoXPath, xpath_context, &value))
+  RETURN_IF_ERROR(
+      GetXmlAttributeValue(kMicrovideoXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->motion_photo)) {
     return kIncorrectTypeError;
   }
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kMicrovideoVersionXPath, xpath_context, &value))
+      GetXmlAttributeValue(kMicrovideoVersionXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->motion_photo_version)) {
     return kIncorrectTypeError;
   }
 
   RETURN_IF_ERROR(GetXmlAttributeValue(kMicrovideoPresentationTimestampUsXPath,
-                                       xpath_context, &value))
+                                       xpath_context, &value));
   if (!absl::SimpleAtoi(value,
                         &image_info->motion_photo_presentation_timestamp_us)) {
     return kIncorrectTypeError;
   }
 
   // Image/Video Mime Type are as specified in Microvideo spec.
-  image_info->image_mime_type = kMicrovideoImageMimeType;
-  image_info->video_mime_type = kMicrovideoVideoMimeType;
+  image_info->image_mime_type = MimeType::kImageJpeg;
+  image_info->video_mime_type = MimeType::kVideoMp4;
 
   RETURN_IF_ERROR(
-      GetXmlAttributeValue(kMicrovideoOffsetXPath, xpath_context, &value))
+      GetXmlAttributeValue(kMicrovideoOffsetXPath, xpath_context, &value));
   if (!absl::SimpleAtoi(value, &image_info->video_length)) {
     return kIncorrectTypeError;
   }
@@ -205,16 +142,7 @@ absl::Status GetImageInfo(const xmlDoc &xml_doc, ImageInfo *image_info) {
     return absl::InternalError("Failed to create xpath context");
   }
 
-  // Register valid namespaces needed to parse out relevant fields.
-  for (const auto &ns : kNamespaces) {
-    if (xmlXPathRegisterNs(
-            xpath_context.get(),
-            reinterpret_cast<const xmlChar *>(ns.first.c_str()),
-            reinterpret_cast<const xmlChar *>(ns.second.c_str()))) {
-      return absl::InternalError("Failed to register namespace: " + ns.first +
-                                 "-" + ns.second);
-    }
-  }
+  RETURN_IF_ERROR(RegisterNamespaces(kNamespaces, xpath_context.get()));
 
   std::string value;
 
@@ -264,20 +192,20 @@ absl::Status Demuxer::Init(const absl::string_view motion_photo) {
   motion_photo_ = std::string(motion_photo);
   image_info_ = std::make_unique<ImageInfo>();
 
-  std::unique_ptr<IXmpIOHelper> xmp_helper = GetXmpHelper(motion_photo_);
+  std::unique_ptr<IXmpIOHelper> xmp_io_helper = GetXmpIOHelper(motion_photo_);
 
-  if (!xmp_helper) {
+  if (!xmp_io_helper) {
     return absl::InvalidArgumentError("Failed to parse file as jpeg or heic");
   }
 
   std::unique_ptr<xmlDoc, LibXmlDeleter> xml_doc =
-      xmp_helper->GetXmp(motion_photo_);
+      xmp_io_helper->GetXmp(motion_photo_);
 
   if (!xml_doc) {
     return absl::InvalidArgumentError("Failed to find and parse xmp data");
   }
 
-  RETURN_IF_ERROR(GetImageInfo(*xml_doc, image_info_.get()))
+  RETURN_IF_ERROR(GetImageInfo(*xml_doc, image_info_.get()));
   RETURN_IF_ERROR(ValidateImageInfo(*image_info_, motion_photo_));
 
   return absl::OkStatus();
