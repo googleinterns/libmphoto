@@ -8,5 +8,8 @@ cc_library(
     hdrs = [
         "io_helper.h",
     ],
-    visibility = ["//tests/demuxer:__pkg__"],
+    visibility = [
+        "//tests/demuxer:__pkg__",
+        "//tests/remuxer:__pkg__",
+    ],
 )
