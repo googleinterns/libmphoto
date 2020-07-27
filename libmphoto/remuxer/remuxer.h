@@ -33,8 +33,11 @@ class Remuxer {
  public:
   Remuxer();
 
-  // Sets the still portion of the motion photo.
-  absl::Status SetStill(const absl::string_view still);
+  // Sets the still portion of the motion photo, taking the timestamp
+  // (in us) of the still's position in the video. If not provided, the default
+  // is the start of the video.
+  absl::Status SetStill(const absl::string_view still,
+                        int presentation_timestamp_us = 0);
 
   // Sets the video portion of the motion photo.
   absl::Status SetVideo(const absl::string_view video);
@@ -44,6 +47,7 @@ class Remuxer {
 
  private:
   std::string still_;
+  int presentation_timestamp_us_;
   std::string video_;
   std::unique_ptr<IXmpIOHelper> xmp_io_helper_;
 

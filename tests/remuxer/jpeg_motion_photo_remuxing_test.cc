@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fstream>
-#include <iostream>
-#include <vector>
-
 #include "gtest/gtest.h"
 #include "libmphoto/demuxer/demuxer.h"
 #include "libmphoto/remuxer/remuxer.h"
@@ -23,12 +19,12 @@
 
 namespace libmphoto {
 
-TEST(JpegRemuxing, CanRemuxWithNoExistingXmp) {
+TEST(JpegMotionPhotoRemuxing, CanRemuxWithNoExistingXmp) {
   std::string still_bytes = GetBytesFromFile("sample_data/jpeg/no_xmp.jpeg");
   std::string video_bytes = GetBytesFromFile("sample_data/mp4/video.mp4");
 
   Remuxer remuxer;
-  EXPECT_TRUE(remuxer.SetStill(still_bytes).ok());
+  EXPECT_TRUE(remuxer.SetStill(still_bytes, 35).ok());
   EXPECT_TRUE(remuxer.SetVideo(video_bytes).ok());
 
   std::string motion_photo;
@@ -47,13 +43,13 @@ TEST(JpegRemuxing, CanRemuxWithNoExistingXmp) {
 
   EXPECT_EQ(image_info.motion_photo, 1);
   EXPECT_EQ(image_info.motion_photo_version, 1);
-  EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 0);
+  EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 35);
   EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, video_bytes.length());
 }
 
-TEST(JpegRemuxing, CanRemuxWithOnlyMotionPhotoXmp) {
+TEST(JpegMotionPhotoRemuxing, CanRemuxWithOnlyMotionPhotoXmp) {
   std::string still_bytes =
       GetBytesFromFile("sample_data/jpeg_motion_photo/still.jpeg");
   std::string video_bytes = GetBytesFromFile("sample_data/mp4/video.mp4");

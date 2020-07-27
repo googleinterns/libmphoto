@@ -65,8 +65,10 @@ std::unique_ptr<xmlDoc, LibXmlDeleter> GetDefaultXmp() {
 
 Remuxer::Remuxer() = default;
 
-absl::Status Remuxer::SetStill(const absl::string_view still) {
+absl::Status Remuxer::SetStill(const absl::string_view still,
+                               int presentation_timestamp_us) {
   still_ = std::string(still);
+  presentation_timestamp_us_ = presentation_timestamp_us;
   xmp_io_helper_ = GetXmpIOHelper(still_);
 
   if (!xmp_io_helper_) {
@@ -84,6 +86,10 @@ absl::Status Remuxer::SetVideo(const absl::string_view video) {
 }
 
 absl::Status Remuxer::Finalize(std::string *motion_photo) {
+  if (still_.empty() || video_.empty()) {
+    return absl::FailedPreconditionError("Still or video not set");
+  }
+
   // Get the current xmp to edit.
   std::unique_ptr<xmlDoc, LibXmlDeleter> xml_doc =
       xmp_io_helper_->GetXmp(still_);
@@ -120,9 +126,9 @@ absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
   RETURN_IF_ERROR(SetXmlAttributeValue(kMotionPhotoXPath, "1", xpath_context));
   RETURN_IF_ERROR(
       SetXmlAttributeValue(kMotionPhotoVersionXPath, "1", xpath_context));
-  // Todo(pinheirojamie) expose editing this through the api.
-  RETURN_IF_ERROR(SetXmlAttributeValue(kMotionPhotoPresentationTimestampUsXPath,
-                                       "0", xpath_context));
+  RETURN_IF_ERROR(SetXmlAttributeValue(
+      kMotionPhotoPresentationTimestampUsXPath,
+      std::to_string(presentation_timestamp_us_), xpath_context));
   RETURN_IF_ERROR(SetXmlAttributeValue(
       kImageMimeTypeXPath, kMimeTypeToString.at(xmp_io_helper_->GetMimeType()),
       xpath_context));
@@ -137,7 +143,16 @@ absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
 
 absl::Status Remuxer::UpdateXmpMicrovideo(xmlXPathContext *xpath_context,
                                           xmlDoc *xml_doc) {
-  return absl::UnimplementedError("");
+  RETURN_IF_ERROR(SetXmlAttributeValue(kMicrovideoXPath, "1", xpath_context));
+  RETURN_IF_ERROR(
+      SetXmlAttributeValue(kMicrovideoVersionXPath, "1", xpath_context));
+  RETURN_IF_ERROR(SetXmlAttributeValue(
+      kMicrovideoPresentationTimestampUsXPath,
+      std::to_string(presentation_timestamp_us_), xpath_context));
+  RETURN_IF_ERROR(SetXmlAttributeValue(
+      kMicrovideoOffsetXPath, std::to_string(video_.length()), xpath_context));
+
+  return absl::OkStatus();
 }
 
 }  // namespace libmphoto

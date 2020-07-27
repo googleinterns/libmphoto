@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fstream>
-#include <iostream>
-#include <vector>
-
 #include "gtest/gtest.h"
 #include "libmphoto/demuxer/demuxer.h"
 #include "tests/common/io_helper.h"

@@ -3,7 +3,9 @@ load("@rules_cc//cc:defs.bzl", "cc_test")
 cc_test(
     name = "tests",
     srcs = [
-        "jpeg_remuxing_test.cc",
+        "generic_remuxing_test.cc",
+        "jpeg_microvideo_remuxing_test.cc",
+        "jpeg_motion_photo_remuxing_test.cc",
     ],
     data = [
         "//sample_data",
