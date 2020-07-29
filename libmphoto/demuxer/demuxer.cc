@@ -94,6 +94,16 @@ absl::Status GetImageInfoFromMotionPhoto(const xmlDoc &xml_doc,
     return kIncorrectTypeError;
   }
 
+  // Still padding is optional, attempt to parse to see if it is present,
+  // otherwise padding is 0.
+  if (GetXmlAttributeValue(kStillPaddingXPath, xpath_context, &value).ok()) {
+    if (!absl::SimpleAtoi(value, &image_info->still_padding)) {
+      return kIncorrectTypeError;
+    }
+  } else {
+    image_info->still_padding = 0;
+  }
+
   return absl::OkStatus();
 }
 
@@ -130,6 +140,9 @@ absl::Status GetImageInfoFromMicrovideo(const xmlDoc &xml_doc,
   if (!absl::SimpleAtoi(value, &image_info->video_length)) {
     return kIncorrectTypeError;
   }
+
+  // Microvideos do not have padding after the still.
+  image_info->still_padding = 0;
 
   return absl::OkStatus();
 }
@@ -233,8 +246,9 @@ absl::Status Demuxer::GetStill(std::string *still) {
     return kDemuxerNotInitializedError;
   }
 
-  *still = motion_photo_.substr(
-      0, motion_photo_.length() - image_info_->video_length);
+  *still = motion_photo_.substr(0, motion_photo_.length() -
+                                       image_info_->video_length -
+                                       image_info_->still_padding);
   return absl::OkStatus();
 }
 

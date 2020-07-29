@@ -48,6 +48,9 @@ constexpr char kVideoMimeTypeXPath[] =
 constexpr char kVideoLengthXPath[] =
     "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[2]/"
     "Container:Item/@Item:Length";
+constexpr char kStillPaddingXPath[] =
+    "/x:xmpmeta/rdf:RDF/rdf:Description/Container:Directory/rdf:Seq/rdf:li[1]/"
+    "Container:Item/@Item:Padding";
 
 // Microvideo (deprecated) metadata xpaths.
 constexpr char kMicrovideoXPath[] =
