@@ -102,6 +102,7 @@ TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
   EXPECT_EQ(image_info.image_mime_type, MimeType::kImageHeic);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 1544201);
+  EXPECT_EQ(image_info.still_padding, 0);
 }
 
 TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
@@ -120,6 +121,7 @@ TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
   EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 122562);
+  EXPECT_EQ(image_info.still_padding, 0);
 }
 
 TEST(InformationExtraction, CanParseValidMicrovideo) {
@@ -138,6 +140,7 @@ TEST(InformationExtraction, CanParseValidMicrovideo) {
   EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 4182318);
+  EXPECT_EQ(image_info.still_padding, 0);
 }
 
 TEST(InformationExtraction, CanFailOnInvalidXmp) {

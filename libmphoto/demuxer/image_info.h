@@ -48,6 +48,9 @@ struct ImageInfo {
   // Byte length of the video container.
   int video_length;
 
+  // Byte length of padding after the still container.
+  int still_padding;
+
   std::string toString() {
     return absl::StrFormat(
         "Motion Photo: %d\n"
@@ -56,10 +59,10 @@ struct ImageInfo {
         "Image Mime Type: %s\n"
         "Video Mime Type: %s\n"
         "Video Length: %d\n",
-        motion_photo, motion_photo_version,
+        "Still Padding: %d", motion_photo, motion_photo_version,
         motion_photo_presentation_timestamp_us,
         kMimeTypeToString.at(image_mime_type),
-        kMimeTypeToString.at(video_mime_type), video_length);
+        kMimeTypeToString.at(video_mime_type), video_length, still_padding);
   }
 };
 
