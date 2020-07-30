@@ -20,6 +20,8 @@
 #include "absl/strings/string_view.h"
 #include "libmphoto/common/xmp_io/jpeg_xmp_io_helper.h"
 #include "libmphoto/common/xmp_io/heic_xmp_io_helper.h"
+#include "libmphoto/common/xml/xml_utils.h"
+#include "libmphoto/common/xmp_field_paths.h"
 
 namespace libmphoto {
 
@@ -50,4 +52,16 @@ std::unique_ptr<IXmpIOHelper> GetXmpIOHelper(const std::string &image) {
   return nullptr;
 }
 
+MPhotoFormat GetMPhotoFormat(const xmlXPathContext &xpath_context) {
+  std::string value;
+
+  if (GetXmlAttributeValue(kMotionPhotoXPath, xpath_context, &value).ok()) {
+    return MPhotoFormat::kMotionPhoto;
+  } else if (GetXmlAttributeValue(kMicrovideoXPath, xpath_context, &value)
+                 .ok()) {
+    return MPhotoFormat::kMicrovideo;
+  }
+
+  return MPhotoFormat::kNone;
+}
 }  // namespace libmphoto

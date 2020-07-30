@@ -80,4 +80,35 @@ TEST(JpegMotionPhotoRemuxing, CanRemuxWithOnlyMotionPhotoXmp) {
   EXPECT_EQ(image_info.video_length, video_bytes.length());
 }
 
+TEST(JpegMotionPhotoRemuxing, CanRemuxWithExistingXmp) {
+  std::string still_bytes =
+      GetBytesFromFile("sample_data/jpeg/existing_xmp.jpeg");
+  std::string video_bytes = GetBytesFromFile("sample_data/mp4/video.mp4");
+
+  Remuxer remuxer;
+  EXPECT_TRUE(remuxer.SetStill(still_bytes, 5).ok());
+  EXPECT_TRUE(remuxer.SetVideo(video_bytes).ok());
+
+  std::string motion_photo;
+  EXPECT_TRUE(remuxer.Finalize(&motion_photo).ok());
+
+  std::string expected_remuxed_bytes =
+      GetBytesFromFile("sample_data/remuxed/jpeg/existing_xmp.jpeg");
+
+  EXPECT_EQ(motion_photo, expected_remuxed_bytes) << "Bytes differ";
+
+  Demuxer demuxer;
+  EXPECT_TRUE(demuxer.Init(motion_photo).ok());
+
+  ImageInfo image_info;
+  EXPECT_TRUE(demuxer.GetInfo(&image_info).ok());
+
+  EXPECT_EQ(image_info.motion_photo, 1);
+  EXPECT_EQ(image_info.motion_photo_version, 1);
+  EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 5);
+  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
+  EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
+  EXPECT_EQ(image_info.video_length, video_bytes.length());
+}
+
 }  // namespace libmphoto

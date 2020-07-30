@@ -20,11 +20,22 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "libxml/xpath.h"
+#include "libxml/tree.h"
+#include "libmphoto/common/xml/libxml_deleter.h"
 
 namespace libmphoto {
+
+static const absl::Status kFailedXPathCreationError =
+    absl::InternalError("Failed to create xpath context");
+
+// Gets a particular xml node.
+absl::Status GetXmlNode(const std::string &xpath,
+                        const xmlXPathContext &xpath_context,
+                        xmlNode **xml_node);
 
 // Gets the value of a particular xml attribute.
 absl::Status GetXmlAttributeValue(const std::string &xpath,
@@ -36,11 +47,11 @@ absl::Status SetXmlAttributeValue(const std::string &xpath,
                                   const std::string &value,
                                   xmlXPathContext *xpath_context);
 
-// Registers an array of namespaces to an xpath context.
-absl::Status RegisterNamespaces(
+// Returns a xpath context with namespaces registered.
+std::unique_ptr<xmlXPathContext, LibXmlDeleter> GetXPathContext(
     const std::vector<std::pair<const std::string, const std::string>>
         namespaces,
-    xmlXPathContext *xpath_context);
+    xmlDoc *xml_doc);
 
 }  // namespace libmphoto
 

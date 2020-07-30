@@ -12,6 +12,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//libmphoto/common",
+        "//libmphoto/common:xmp",
         "@absl//absl/status",
     ],
 )

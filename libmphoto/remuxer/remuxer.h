@@ -51,10 +51,8 @@ class Remuxer {
   std::string video_;
   std::unique_ptr<IXmpIOHelper> xmp_io_helper_;
 
-  absl::Status UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
-                                    xmlDoc *xml_doc);
-  absl::Status UpdateXmpMicrovideo(xmlXPathContext *xpath_context,
-                                   xmlDoc *xml_doc);
+  absl::Status UpdateXmpMotionPhoto(xmlXPathContext *xpath_context);
+  absl::Status UpdateXmpMicrovideo(xmlXPathContext *xpath_context);
 };
 
 }  // namespace libmphoto

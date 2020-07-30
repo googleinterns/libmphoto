@@ -4,6 +4,7 @@ cc_library(
     name = "common",
     hdrs = [
         "macros.h",
+        "mime_type.h",
         "xmp_field_paths.h",
     ],
     visibility = [
@@ -11,9 +12,6 @@ cc_library(
         "//libmphoto/remuxer:__pkg__",
     ],
     deps = [
-        "//libmphoto/common:mime_type",
-        "//libmphoto/common/xml",
-        "//libmphoto/common/xmp_io",
         "@absl//absl/status",
         "@libxml",
         "@xmpmeta",
@@ -21,9 +19,27 @@ cc_library(
 )
 
 cc_library(
-    name = "mime_type",
-    hdrs = [
-        "mime_type.h",
+    name = "xmp",
+    srcs = [
+        "xml/xml_utils.cc",
+        "xmp_io/heic_xmp_io_helper.cc",
+        "xmp_io/jpeg_xmp_io_helper.cc",
+        "xmp_io/xmp_io_helper.cc",
     ],
-    visibility = ["//visibility:public"],
+    hdrs = [
+        "xml/libxml_deleter.h",
+        "xml/xml_utils.h",
+        "xmp_io/heic_xmp_io_helper.h",
+        "xmp_io/jpeg_xmp_io_helper.h",
+        "xmp_io/xmp_io_helper.h",
+    ],
+    visibility = [
+        "//libmphoto/demuxer:__pkg__",
+        "//libmphoto/remuxer:__pkg__",
+    ],
+    deps = [
+        "//libmphoto/common",
+        "@absl//absl/status",
+        "@libxml",
+    ],
 )

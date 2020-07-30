@@ -25,11 +25,11 @@
 namespace libmphoto {
 
 struct LibXmlDeleter {
-  void operator()(xmlDocPtr xml_doc) { xmlFreeDoc(xml_doc); }
-  void operator()(xmlXPathContextPtr xpath_context) {
+  void operator()(xmlDoc *xml_doc) { xmlFreeDoc(xml_doc); }
+  void operator()(xmlXPathContext *xpath_context) {
     xmlXPathFreeContext(xpath_context);
   }
-  void operator()(xmlXPathObjectPtr xpath_object) {
+  void operator()(xmlXPathObject *xpath_object) {
     xmlXPathFreeObject(xpath_object);
   }
 };

@@ -56,8 +56,7 @@ MimeType GetMimeType(const std::string &input) {
   return MimeType::kUnknownMimeType;
 }
 
-absl::Status GetImageInfoFromMotionPhoto(const xmlDoc &xml_doc,
-                                         const xmlXPathContext &xpath_context,
+absl::Status GetImageInfoFromMotionPhoto(const xmlXPathContext &xpath_context,
                                          ImageInfo *image_info) {
   std::string value;
 
@@ -107,8 +106,7 @@ absl::Status GetImageInfoFromMotionPhoto(const xmlDoc &xml_doc,
   return absl::OkStatus();
 }
 
-absl::Status GetImageInfoFromMicrovideo(const xmlDoc &xml_doc,
-                                        const xmlXPathContext &xpath_context,
+absl::Status GetImageInfoFromMicrovideo(const xmlXPathContext &xpath_context,
                                         ImageInfo *image_info) {
   std::string value;
 
@@ -148,28 +146,20 @@ absl::Status GetImageInfoFromMicrovideo(const xmlDoc &xml_doc,
 }
 
 absl::Status GetImageInfo(const xmlDoc &xml_doc, ImageInfo *image_info) {
-  std::unique_ptr<xmlXPathContext, LibXmlDeleter> xpath_context(
-      xmlXPathNewContext(const_cast<xmlDoc *>(&xml_doc)));
-
+  auto xpath_context =
+      GetXPathContext(kNamespaces, const_cast<xmlDoc *>(&xml_doc));
   if (!xpath_context) {
-    return absl::InternalError("Failed to create xpath context");
+    return kFailedXPathCreationError;
   }
 
-  RETURN_IF_ERROR(RegisterNamespaces(kNamespaces, xpath_context.get()));
+  MPhotoFormat format = GetMPhotoFormat(*xpath_context);
 
-  std::string value;
-
-  // Check if xmp has field signifying it is a Motion Photo.
-  if (GetXmlAttributeValue(kMotionPhotoXPath, *xpath_context, &value).ok()) {
-    return GetImageInfoFromMotionPhoto(xml_doc, *xpath_context, image_info);
+  if (format == MPhotoFormat::kMotionPhoto) {
+    return GetImageInfoFromMotionPhoto(*xpath_context, image_info);
+  } else if (format == MPhotoFormat::kMicrovideo) {
+    return GetImageInfoFromMicrovideo(*xpath_context, image_info);
   }
 
-  // Check if xmp has field signifying it is a Microvideo.
-  if (GetXmlAttributeValue(kMicrovideoXPath, *xpath_context, &value).ok()) {
-    return GetImageInfoFromMicrovideo(xml_doc, *xpath_context, image_info);
-  }
-
-  // Not a Motion Photo or Microvideo.
   return kInvalidMotionPhotoError;
 }
 

@@ -49,6 +49,11 @@ class IXmpIOHelper {
 // Returns the appropriate xmp helper for a given image stream.
 std::unique_ptr<IXmpIOHelper> GetXmpIOHelper(const std::string &image);
 
+enum class MPhotoFormat { kNone = 0, kMotionPhoto, kMicrovideo };
+
+// Returns the the MPhotoFormat for a given xmp metadata.
+MPhotoFormat GetMPhotoFormat(const xmlXPathContext &xpath_context);
+
 }  // namespace libmphoto
 
 #endif  // LIBMPHOTO_COMMON_XMP_IO_XMP_IO_HELPER_H_

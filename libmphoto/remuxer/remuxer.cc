@@ -28,6 +28,14 @@ constexpr char kDefaultXmp[] =
     "  x:xmptk=\"Adobe XMP Core 5.1.0-jc003\">\n"
     "  <rdf:RDF\n"
     "    xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
+    "  </rdf:RDF>\n"
+    "</x:xmpmeta>";
+
+constexpr char kXmpRootXPath[] = "/x:xmpmeta/rdf:RDF[1]";
+
+constexpr char kDefaultXmpMotionPhotoItem[] =
+    "<rdf:RDF\n"
+    "  xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
     "    <rdf:Description\n"
     "      rdf:about=\"\"\n"
     "      xmlns:Camera=\"http://ns.google.com/photos/1.0/camera/\"\n"
@@ -53,12 +61,45 @@ constexpr char kDefaultXmp[] =
     "        </rdf:Seq>\n"
     "      </Container:Directory>\n"
     "    </rdf:Description>\n"
-    "  </rdf:RDF>\n"
-    "</x:xmpmeta>";
+    "</rdf:RDF>\n";
+
+absl::Status MergeXmpItemIntoXmlDoc(const std::string &xmp_item,
+                                    xmlDoc *xml_doc) {
+  auto xpath_context = GetXPathContext(kNamespaces, xml_doc);
+  if (!xpath_context) {
+    return kFailedXPathCreationError;
+  }
+
+  xmlNode *xmp_root;
+  RETURN_IF_ERROR(GetXmlNode(kXmpRootXPath, *xpath_context, &xmp_root));
+
+  std::unique_ptr<xmlDoc, LibXmlDeleter> new_xmp_item_doc(
+      xmlReadMemory(xmp_item.data(), xmp_item.length(), ".xml", nullptr, 0));
+
+  // Copy is owned by xml_doc.
+  xmlNode *new_xmp_item_node =
+      xmlDocCopyNode(xmlDocGetRootElement(new_xmp_item_doc.get()), xml_doc, 1);
+
+  if (!new_xmp_item_node) {
+    return absl::InvalidArgumentError("Failed to create new xmp item node");
+  }
+
+  if (!xmlAddChildList(xmp_root, new_xmp_item_node->children)) {
+    return absl::InternalError("Failed to add child xmp item");
+  }
+
+  return absl::OkStatus();
+}
 
 std::unique_ptr<xmlDoc, LibXmlDeleter> GetDefaultXmp() {
-  return std::unique_ptr<xmlDoc, LibXmlDeleter>(
+  std::unique_ptr<xmlDoc, LibXmlDeleter> xml_doc(
       xmlReadMemory(kDefaultXmp, strlen(kDefaultXmp), ".xml", nullptr, 0));
+
+  if (!MergeXmpItemIntoXmlDoc(kDefaultXmpMotionPhotoItem, xml_doc.get()).ok()) {
+    return nullptr;
+  }
+
+  return xml_doc;
 }
 
 }  // namespace
@@ -97,21 +138,23 @@ absl::Status Remuxer::Finalize(std::string *motion_photo) {
     xml_doc = GetDefaultXmp();
   }
 
-  std::unique_ptr<xmlXPathContext, LibXmlDeleter> xpath_context(
-      xmlXPathNewContext(xml_doc.get()));
+  auto xpath_context = GetXPathContext(kNamespaces, xml_doc.get());
   if (!xpath_context) {
-    return absl::InternalError("Failed to create xpath context");
+    return kFailedXPathCreationError;
   }
-
-  RETURN_IF_ERROR(RegisterNamespaces(kNamespaces, xpath_context.get()));
 
   // If the still has Microvideo metadata edit it, otherwise edit Motion Photo
   // metadata.
-  std::string value;
-  if (GetXmlAttributeValue(kMicrovideoXPath, *xpath_context, &value).ok()) {
-    RETURN_IF_ERROR(UpdateXmpMicrovideo(xpath_context.get(), xml_doc.get()));
+  MPhotoFormat format = GetMPhotoFormat(*xpath_context);
+
+  if (format == MPhotoFormat::kMicrovideo) {
+    RETURN_IF_ERROR(UpdateXmpMicrovideo(xpath_context.get()));
   } else {
-    RETURN_IF_ERROR(UpdateXmpMotionPhoto(xpath_context.get(), xml_doc.get()));
+    if (format == MPhotoFormat::kNone) {
+      RETURN_IF_ERROR(
+          MergeXmpItemIntoXmlDoc(kDefaultXmpMotionPhotoItem, xml_doc.get()));
+    }
+    RETURN_IF_ERROR(UpdateXmpMotionPhoto(xpath_context.get()));
   }
 
   std::string updated_still;
@@ -121,8 +164,7 @@ absl::Status Remuxer::Finalize(std::string *motion_photo) {
   return absl::OkStatus();
 }
 
-absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
-                                           xmlDoc *xml_doc) {
+absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context) {
   RETURN_IF_ERROR(SetXmlAttributeValue(kMotionPhotoXPath, "1", xpath_context));
   RETURN_IF_ERROR(
       SetXmlAttributeValue(kMotionPhotoVersionXPath, "1", xpath_context));
@@ -141,8 +183,7 @@ absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context,
   return absl::OkStatus();
 }
 
-absl::Status Remuxer::UpdateXmpMicrovideo(xmlXPathContext *xpath_context,
-                                          xmlDoc *xml_doc) {
+absl::Status Remuxer::UpdateXmpMicrovideo(xmlXPathContext *xpath_context) {
   RETURN_IF_ERROR(SetXmlAttributeValue(kMicrovideoXPath, "1", xpath_context));
   RETURN_IF_ERROR(
       SetXmlAttributeValue(kMicrovideoVersionXPath, "1", xpath_context));
