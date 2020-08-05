@@ -102,7 +102,7 @@ TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
   EXPECT_EQ(image_info.image_mime_type, MimeType::kImageHeic);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 1544201);
-  EXPECT_EQ(image_info.still_padding, 0);
+  EXPECT_EQ(image_info.still_padding, 16);
 }
 
 TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {

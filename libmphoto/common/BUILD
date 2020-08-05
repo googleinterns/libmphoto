@@ -31,6 +31,7 @@ cc_library(
         "xml/xml_utils.h",
         "xmp_io/heic_xmp_io_helper.h",
         "xmp_io/jpeg_xmp_io_helper.h",
+        "xmp_io/libheif_deleter.h",
         "xmp_io/xmp_io_helper.h",
     ],
     visibility = [
@@ -40,6 +41,7 @@ cc_library(
     deps = [
         "//libmphoto/common",
         "@absl//absl/status",
+        "@libheif",
         "@libxml",
     ],
 )
