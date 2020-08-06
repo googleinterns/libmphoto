@@ -32,6 +32,51 @@ namespace {
 constexpr char kMetadataTypeXmp[] = "mime";
 constexpr char kContentTypeXmp[] = "application/rdf+xml";
 
+constexpr char kEncoding[] = "UTF-8";
+
+static struct heif_error heif_memory_writer(struct heif_context *ctx,
+                                            const void *data, size_t size,
+                                            void *userdata) {
+  auto ss = reinterpret_cast<std::stringstream *>(userdata);
+
+  ss->write(static_cast<const char *>(data), size);
+  return heif_error();
+}
+
+// Serializes an XMP document to a string.
+absl::Status SerializeXmp(const xmlDoc &xml_doc,
+                          std::string *serialized_value) {
+  std::ostringstream serialized_stream;
+  xmlChar *value;
+  int doc_size = 0;
+  xmlDocDumpFormatMemoryEnc(const_cast<xmlDoc *>(&xml_doc), &value, &doc_size,
+                            kEncoding, 1);
+
+  std::unique_ptr<xmlChar, LibXmlDeleter> xml_doc_contents(value);
+
+  if (!xml_doc_contents) {
+    return absl::InvalidArgumentError("Xml failed to serialize");
+  }
+
+  const char *xml_doc_string =
+      reinterpret_cast<const char *>(xml_doc_contents.get());
+
+  // Find the index of the second "<" so we can discard the first element,
+  // which is <?xml version...>, so start searching after the first "<". XMP
+  // starts directly afterwards.
+  const char *xmp_start_pos = strchr(&xml_doc_string[2], '<');
+  if (xmp_start_pos == nullptr) {
+    return absl::InvalidArgumentError("Failed to find start of xmp in xml");
+  }
+
+  const int xmp_start_idx = static_cast<int>(xmp_start_pos - xml_doc_string);
+
+  serialized_stream.write(&xml_doc_string[xmp_start_idx],
+                          doc_size - xmp_start_idx);
+  *serialized_value = serialized_stream.str();
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 std::unique_ptr<xmlDoc, LibXmlDeleter> HeicXmpIOHelper::GetXmp(
@@ -90,7 +135,47 @@ std::unique_ptr<xmlDoc, LibXmlDeleter> HeicXmpIOHelper::GetXmp(
 absl::Status HeicXmpIOHelper::SetXmp(const xmlDoc &xml_doc,
                                      const std::string &image,
                                      std::string *updated_image) {
-  return absl::UnimplementedError("");
+  heif_error error;
+
+  std::unique_ptr<heif_context> context(heif_context_alloc());
+  error = heif_context_read_from_memory_without_copy(
+      context.get(), image.data(), image.length(), nullptr);
+  if (error.code != heif_error_Ok) {
+    return absl::InvalidArgumentError("Failed to create heif context");
+  }
+
+  heif_image_handle *handle;
+  error = heif_context_get_primary_image_handle(context.get(), &handle);
+  if (error.code != heif_error_Ok) {
+    return absl::InvalidArgumentError("Failed to get primary image handle");
+  }
+
+  std::string serialized_xmp;
+  RETURN_IF_ERROR(SerializeXmp(xml_doc, &serialized_xmp));
+
+  heif_image *img;
+  error = heif_decode_image(handle, &img, heif_colorspace_RGB,
+                            heif_chroma_interleaved_RGB, nullptr);
+
+  error = heif_context_add_XMP_metadata(
+      context.get(), handle, serialized_xmp.data(), serialized_xmp.length());
+
+  // https://github.com/strukturag/libheif/issues/127"
+  return absl::UnimplementedError("libheif can't transmux xmp metadata");
+
+  heif_writer writer;
+  writer.writer_api_version = 1;
+  writer.write = heif_memory_writer;
+
+  std::stringstream updated_image_stream;
+  error = heif_context_write(context.get(), &writer, &updated_image_stream);
+
+  if (error.code != heif_error_Ok) {
+    return absl::InternalError("Failed to write xmp back to heif");
+  }
+
+  *updated_image = updated_image_stream.str();
+  return absl::OkStatus();
 }
 
 MimeType HeicXmpIOHelper::GetMimeType() { return MimeType::kImageHeic; }
