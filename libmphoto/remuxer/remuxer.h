@@ -47,12 +47,14 @@ class Remuxer {
 
  private:
   std::string still_;
-  int presentation_timestamp_us_;
+  std::string still_padding_;
   std::string video_;
+  int presentation_timestamp_us_;
   std::unique_ptr<IXmpIOHelper> xmp_io_helper_;
 
   absl::Status UpdateXmpMotionPhoto(xmlXPathContext *xpath_context);
   absl::Status UpdateXmpMicrovideo(xmlXPathContext *xpath_context);
+  absl::Status GenerateStillPadding();
 };
 
 }  // namespace libmphoto

@@ -14,6 +14,9 @@
 
 #include "libmphoto/remuxer/remuxer.h"
 
+#include <sstream>
+
+#include "absl/base/internal/endian.h"
 #include "libmphoto/common/xmp_field_paths.h"
 #include "libmphoto/common/xml/xml_utils.h"
 #include "libmphoto/common/macros.h"
@@ -102,6 +105,32 @@ std::unique_ptr<xmlDoc, LibXmlDeleter> GetDefaultXmp() {
   return xml_doc;
 }
 
+constexpr char mpvd_box_name[] = "mpvd";
+
+absl::Status GetHeicStillPadding(const int video_length,
+                                 std::string *still_padding) {
+  std::stringstream ss;
+  uint32_t large_signal = 1;
+  char large_signal_big_endian[4];
+
+  absl::big_endian::Store32(large_signal_big_endian, large_signal);
+  ss.write(large_signal_big_endian, sizeof(large_signal_big_endian));
+
+  ss.write(mpvd_box_name, sizeof(mpvd_box_name));
+
+  char mpvd_box_length_big_endian[8];
+  uint64_t mpvd_box_length = sizeof(large_signal_big_endian) +
+                             sizeof(mpvd_box_name) +
+                             sizeof(mpvd_box_length_big_endian) + video_length;
+
+  absl::big_endian::Store64(mpvd_box_length_big_endian, mpvd_box_length);
+
+  ss.write(mpvd_box_length_big_endian, sizeof(mpvd_box_length_big_endian));
+
+  *still_padding = ss.str();
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 Remuxer::Remuxer() = default;
@@ -121,8 +150,9 @@ absl::Status Remuxer::SetStill(const absl::string_view still,
 }
 
 absl::Status Remuxer::SetVideo(const absl::string_view video) {
-  video_ = std::string(video);
   // Todo(pinheirojamie) validate the video is an mp4.
+  video_ = std::string(video);
+
   return absl::OkStatus();
 }
 
@@ -130,6 +160,8 @@ absl::Status Remuxer::Finalize(std::string *motion_photo) {
   if (still_.empty() || video_.empty()) {
     return absl::FailedPreconditionError("Still or video not set");
   }
+
+  RETURN_IF_ERROR(GenerateStillPadding());
 
   // Get the current xmp to edit.
   std::unique_ptr<xmlDoc, LibXmlDeleter> xml_doc =
@@ -160,7 +192,7 @@ absl::Status Remuxer::Finalize(std::string *motion_photo) {
   std::string updated_still;
   RETURN_IF_ERROR(xmp_io_helper_->SetXmp(*xml_doc, still_, &updated_still));
 
-  *motion_photo = updated_still + video_;
+  *motion_photo = updated_still + still_padding_ + video_;
   return absl::OkStatus();
 }
 
@@ -179,6 +211,11 @@ absl::Status Remuxer::UpdateXmpMotionPhoto(xmlXPathContext *xpath_context) {
       xpath_context));
   RETURN_IF_ERROR(SetXmlAttributeValue(
       kVideoLengthXPath, std::to_string(video_.length()), xpath_context));
+  if (still_padding_.length() > 0) {
+    RETURN_IF_ERROR(SetXmlAttributeValue(
+        kStillPaddingXPath, std::to_string(still_padding_.length()),
+        xpath_context));
+  }
 
   return absl::OkStatus();
 }
@@ -194,6 +231,20 @@ absl::Status Remuxer::UpdateXmpMicrovideo(xmlXPathContext *xpath_context) {
       kMicrovideoOffsetXPath, std::to_string(video_.length()), xpath_context));
 
   return absl::OkStatus();
+}
+
+absl::Status Remuxer::GenerateStillPadding() {
+  if (xmp_io_helper_->GetMimeType() == MimeType::kImageJpeg) {
+    // Jpeg Motion Photos/Microvideos do not have any paddig around still.
+    still_padding_ = "";
+    return absl::OkStatus();
+  }
+
+  if (xmp_io_helper_->GetMimeType() == MimeType::kImageHeic) {
+    return GetHeicStillPadding(video_.length(), &still_padding_);
+  }
+
+  return absl::InternalError("Invalid motion photo mime type");
 }
 
 }  // namespace libmphoto
