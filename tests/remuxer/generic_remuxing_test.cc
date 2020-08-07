@@ -41,4 +41,20 @@ TEST(GenericRemuxing, CanFailIfVideoNotSet) {
             absl::StatusCode::kFailedPrecondition);
 }
 
+TEST(GenericRemuxing, CanFailIfIncorrectStillType) {
+  std::string video_bytes = GetBytesFromFile("sample_data/mp4/video.mp4");
+
+  Remuxer remuxer;
+  EXPECT_EQ(remuxer.SetStill(video_bytes).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(GenericRemuxing, CanFailIfIncorrectVideoType) {
+  std::string still_bytes = GetBytesFromFile("sample_data/jpeg/no_xmp.jpeg");
+
+  Remuxer remuxer;
+  EXPECT_EQ(remuxer.SetVideo(still_bytes).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
 }  // namespace libmphoto

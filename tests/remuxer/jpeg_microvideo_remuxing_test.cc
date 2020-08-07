@@ -45,7 +45,7 @@ TEST(JpegMicrovideoRemuxing, CanRemuxWithOnlyMicrovideoXmp) {
   EXPECT_EQ(image_info.motion_photo, 1);
   EXPECT_EQ(image_info.motion_photo_version, 1);
   EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 10);
-  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
+  EXPECT_EQ(image_info.still_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, video_bytes.length());
 }

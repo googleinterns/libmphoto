@@ -48,6 +48,9 @@ class Demuxer {
  private:
   std::string motion_photo_;
   std::unique_ptr<ImageInfo> image_info_;
+
+  absl::string_view GetStillStringView();
+  absl::string_view GetVideoStringView();
 };
 
 }  // namespace libmphoto

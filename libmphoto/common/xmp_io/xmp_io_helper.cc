@@ -15,37 +15,24 @@
 #include "libmphoto/common/xmp_io/xmp_io_helper.h"
 
 #include <vector>
-#include <algorithm>
 
 #include "absl/strings/string_view.h"
 #include "libmphoto/common/xmp_io/jpeg_xmp_io_helper.h"
 #include "libmphoto/common/xmp_io/heic_xmp_io_helper.h"
 #include "libmphoto/common/xml/xml_utils.h"
 #include "libmphoto/common/xmp_field_paths.h"
+#include "libmphoto/common/stream_parser.h"
 
 namespace libmphoto {
 
-namespace {
-
-const std::vector<const char *> kHeicFtyps = {
-    "ftypmif1", "ftypmsf1", "ftypheic", "ftypheix", "ftyphevc", "ftyphevx"};
-
-}  // namespace
-
 std::unique_ptr<IXmpIOHelper> GetXmpIOHelper(const std::string &image) {
-  // Check for FF D8 jpeg header.
-  if (image.at(0) == '\377' && image.at(1) == '\330') {
+  MimeType mime_type = GetStreamMimeType(image);
+
+  if (mime_type == MimeType::kImageJpeg) {
     return absl::make_unique<JpegXmpIOHelper>();
   }
 
-  // Search in first 16 bytes.
-  absl::string_view header = absl::string_view(image.data(), 16);
-
-  // Check if any of the heic ftyps are present in header.
-  if (std::any_of(kHeicFtyps.begin(), kHeicFtyps.end(),
-                  [header](const char *ftyp) {
-                    return header.find(ftyp) != std::string::npos;
-                  })) {
+  if (mime_type == MimeType::kImageHeic) {
     return absl::make_unique<HeicXmpIOHelper>();
   }
 

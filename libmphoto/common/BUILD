@@ -2,9 +2,13 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "common",
+    srcs = [
+        "stream_parser.cc",
+    ],
     hdrs = [
         "macros.h",
         "mime_type.h",
+        "stream_parser.h",
         "xmp_field_paths.h",
     ],
     visibility = [
@@ -13,8 +17,6 @@ cc_library(
     ],
     deps = [
         "@absl//absl/status",
-        "@libxml",
-        "@xmpmeta",
     ],
 )
 
@@ -43,5 +45,6 @@ cc_library(
         "@absl//absl/status",
         "@libheif",
         "@libxml",
+        "@xmpmeta",
     ],
 )

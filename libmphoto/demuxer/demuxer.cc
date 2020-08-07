@@ -25,6 +25,7 @@
 #include "libmphoto/common/xml/libxml_deleter.h"
 #include "libmphoto/common/xml/xml_utils.h"
 #include "libmphoto/common/xmp_io/xmp_io_helper.h"
+#include "libmphoto/common/stream_parser.h"
 
 namespace libmphoto {
 
@@ -46,7 +47,6 @@ const std::map<std::string, MimeType> kStringToMimeType = {
     {"video/mp4", MimeType::kVideoMp4}};
 
 MimeType GetMimeType(const std::string &input) {
-  // Todo(pinheirojamie) do signature checks to validate mime types.
   std::string lower_case_input = absl::AsciiStrToLower(input);
 
   if (kStringToMimeType.find(lower_case_input) != kStringToMimeType.end()) {
@@ -81,7 +81,7 @@ absl::Status GetImageInfoFromMotionPhoto(const xmlXPathContext &xpath_context,
 
   RETURN_IF_ERROR(
       GetXmlAttributeValue(kImageMimeTypeXPath, xpath_context, &value));
-  image_info->image_mime_type = GetMimeType(value);
+  image_info->still_mime_type = GetMimeType(value);
 
   RETURN_IF_ERROR(
       GetXmlAttributeValue(kVideoMimeTypeXPath, xpath_context, &value));
@@ -130,7 +130,7 @@ absl::Status GetImageInfoFromMicrovideo(const xmlXPathContext &xpath_context,
   }
 
   // Image/Video Mime Type are as specified in Microvideo spec.
-  image_info->image_mime_type = MimeType::kImageJpeg;
+  image_info->still_mime_type = MimeType::kImageJpeg;
   image_info->video_mime_type = MimeType::kVideoMp4;
 
   RETURN_IF_ERROR(
@@ -164,6 +164,8 @@ absl::Status GetImageInfo(const xmlDoc &xml_doc, ImageInfo *image_info) {
 }
 
 absl::Status ValidateImageInfo(const ImageInfo &image_info,
+                               const absl::string_view still,
+                               const absl::string_view video,
                                const std::string &motion_photo) {
   if (image_info.motion_photo != 1) {
     return absl::InvalidArgumentError(absl::StrFormat(
@@ -176,12 +178,24 @@ absl::Status ValidateImageInfo(const ImageInfo &image_info,
                                       image_info.video_length);
   }
 
-  if (image_info.image_mime_type == MimeType::kUnknownMimeType) {
+  if (image_info.still_mime_type == MimeType::kUnknownMimeType) {
     return absl::InvalidArgumentError("Invalid image mime type");
+  }
+
+  if (image_info.still_mime_type != GetStreamMimeType(still)) {
+    return absl::InvalidArgumentError(
+        "Metadata specified still mime type does not match actual still mime "
+        "type");
   }
 
   if (image_info.video_mime_type == MimeType::kUnknownMimeType) {
     return absl::InvalidArgumentError("Invalid video mime type");
+  }
+
+  if (image_info.video_mime_type != GetStreamMimeType(video)) {
+    return absl::InvalidArgumentError(
+        "Metadata specified video mime type does not match actual video mime "
+        "type");
   }
 
   return absl::OkStatus();
@@ -209,7 +223,8 @@ absl::Status Demuxer::Init(const absl::string_view motion_photo) {
   }
 
   RETURN_IF_ERROR(GetImageInfo(*xml_doc, image_info_.get()));
-  RETURN_IF_ERROR(ValidateImageInfo(*image_info_, motion_photo_));
+  RETURN_IF_ERROR(ValidateImageInfo(*image_info_, GetStillStringView(),
+                                    GetVideoStringView(), motion_photo_));
 
   return absl::OkStatus();
 }
@@ -236,9 +251,7 @@ absl::Status Demuxer::GetStill(std::string *still) {
     return kDemuxerNotInitializedError;
   }
 
-  *still = motion_photo_.substr(0, motion_photo_.length() -
-                                       image_info_->video_length -
-                                       image_info_->still_padding);
+  *still = std::string(GetStillStringView());
   return absl::OkStatus();
 }
 
@@ -251,9 +264,28 @@ absl::Status Demuxer::GetVideo(std::string *video) {
     return kDemuxerNotInitializedError;
   }
 
-  *video =
-      motion_photo_.substr(motion_photo_.length() - image_info_->video_length);
+  *video = std::string(GetVideoStringView());
   return absl::OkStatus();
+}
+
+absl::string_view Demuxer::GetStillStringView() {
+  if (!image_info_) {
+    return "";
+  }
+
+  return absl::string_view(motion_photo_.data(),
+                           motion_photo_.length() - image_info_->video_length -
+                               image_info_->still_padding);
+}
+
+absl::string_view Demuxer::GetVideoStringView() {
+  if (!image_info_) {
+    return "";
+  }
+
+  return absl::string_view(
+      motion_photo_.data() + motion_photo_.length() - image_info_->video_length,
+      image_info_->video_length);
 }
 
 }  // namespace libmphoto

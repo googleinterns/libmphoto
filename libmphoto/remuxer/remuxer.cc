@@ -20,6 +20,7 @@
 #include "libmphoto/common/xmp_field_paths.h"
 #include "libmphoto/common/xml/xml_utils.h"
 #include "libmphoto/common/macros.h"
+#include "libmphoto/common/stream_parser.h"
 
 namespace libmphoto {
 
@@ -150,7 +151,9 @@ absl::Status Remuxer::SetStill(const absl::string_view still,
 }
 
 absl::Status Remuxer::SetVideo(const absl::string_view video) {
-  // Todo(pinheirojamie) validate the video is an mp4.
+  if (GetStreamMimeType(video) != MimeType::kVideoMp4) {
+    return absl::InvalidArgumentError("Video cannot be parsed as an mp4");
+  }
   video_ = std::string(video);
 
   return absl::OkStatus();

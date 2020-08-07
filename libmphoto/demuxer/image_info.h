@@ -40,7 +40,7 @@ struct ImageInfo {
   int64_t motion_photo_presentation_timestamp_us;
 
   // MIME type of the media item in the still image container.
-  MimeType image_mime_type;
+  MimeType still_mime_type;
 
   // MIME type of the media item in the video container.
   MimeType video_mime_type;
@@ -56,13 +56,13 @@ struct ImageInfo {
         "Motion Photo: %d\n"
         "Motion Photo Version: %d\n"
         "Motion Photo Presentation Timestamp Us: %lld\n"
-        "Image Mime Type: %s\n"
+        "Still Mime Type: %s\n"
         "Video Mime Type: %s\n"
         "Video Length: %d\n"
         "Still Padding: %d",
         motion_photo, motion_photo_version,
         motion_photo_presentation_timestamp_us,
-        kMimeTypeToString.at(image_mime_type),
+        kMimeTypeToString.at(still_mime_type),
         kMimeTypeToString.at(video_mime_type), video_length, still_padding);
   }
 };

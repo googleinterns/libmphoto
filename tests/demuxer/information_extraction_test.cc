@@ -99,7 +99,7 @@ TEST(InformationExtraction, CanParseValidHeicMotionPhoto) {
   EXPECT_EQ(image_info.motion_photo, 1);
   EXPECT_EQ(image_info.motion_photo_version, 1);
   EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 0);
-  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageHeic);
+  EXPECT_EQ(image_info.still_mime_type, MimeType::kImageHeic);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 1544201);
   EXPECT_EQ(image_info.still_padding, 16);
@@ -118,7 +118,7 @@ TEST(InformationExtraction, CanParseValidJpegMotionPhoto) {
   EXPECT_EQ(image_info.motion_photo, 1);
   EXPECT_EQ(image_info.motion_photo_version, 1);
   EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, 500000);
-  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
+  EXPECT_EQ(image_info.still_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 122562);
   EXPECT_EQ(image_info.still_padding, 0);
@@ -137,7 +137,7 @@ TEST(InformationExtraction, CanParseValidMicrovideo) {
   EXPECT_EQ(image_info.motion_photo, 1);
   EXPECT_EQ(image_info.motion_photo_version, 1);
   EXPECT_EQ(image_info.motion_photo_presentation_timestamp_us, -1);
-  EXPECT_EQ(image_info.image_mime_type, MimeType::kImageJpeg);
+  EXPECT_EQ(image_info.still_mime_type, MimeType::kImageJpeg);
   EXPECT_EQ(image_info.video_mime_type, MimeType::kVideoMp4);
   EXPECT_EQ(image_info.video_length, 4182318);
   EXPECT_EQ(image_info.still_padding, 0);
@@ -246,11 +246,10 @@ TEST(InformationExtraction, CanFailWhenInvalidMimeType) {
 
 TEST(InformationExtraction, CanFailWhenNotMotionPhoto) {
   // Motion photo = 0 signifies not to treat the file as a motion photo.
-  std::string invalid_mime_type_xmp_metadata =
+  std::string invalid_xmp_metadata =
       GetXmp("0", "latest", "500000", "image/jpeg", "video/mp4", "122562");
 
-  std::string photo_bytes =
-      GetPhotoBytesFromXmp(invalid_mime_type_xmp_metadata);
+  std::string photo_bytes = GetPhotoBytesFromXmp(invalid_xmp_metadata);
 
   Demuxer demuxer;
   EXPECT_EQ(demuxer.Init(photo_bytes).code(),
@@ -259,11 +258,24 @@ TEST(InformationExtraction, CanFailWhenNotMotionPhoto) {
 
 TEST(InformationExtraction, CanFailWhenInvalidLength) {
   // Video length not possible as it's larger than the file.
-  std::string invalid_mime_type_xmp_metadata =
+  std::string invalid_video_length_xmp_metadata =
       GetXmp("0", "latest", "500000", "image/jpeg", "video/mp4", "2147483647");
 
   std::string photo_bytes =
-      GetPhotoBytesFromXmp(invalid_mime_type_xmp_metadata);
+      GetPhotoBytesFromXmp(invalid_video_length_xmp_metadata);
+
+  Demuxer demuxer;
+  EXPECT_EQ(demuxer.Init(photo_bytes).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(InformationExtraction, CanFailWhenXmpMimeTypeDoesNotMatchBytes) {
+  // Image will be a image/jpeg, not an image/heic.
+  std::string incorrect_mime_type_xmp_metadata =
+      GetXmp("0", "latest", "500000", "image/heic", "video/mp4", "122562");
+
+  std::string photo_bytes =
+      GetPhotoBytesFromXmp(incorrect_mime_type_xmp_metadata);
 
   Demuxer demuxer;
   EXPECT_EQ(demuxer.Init(photo_bytes).code(),
