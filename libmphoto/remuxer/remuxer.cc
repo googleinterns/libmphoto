@@ -106,7 +106,7 @@ std::unique_ptr<xmlDoc, LibXmlDeleter> GetDefaultXmp() {
   return xml_doc;
 }
 
-constexpr char mpvd_box_name[] = "mpvd";
+constexpr char kMpvdBoxName[] = "mpvd";
 
 absl::Status GetHeicStillPadding(const int video_length,
                                  std::string *still_padding) {
@@ -117,11 +117,11 @@ absl::Status GetHeicStillPadding(const int video_length,
   absl::big_endian::Store32(large_signal_big_endian, large_signal);
   ss.write(large_signal_big_endian, sizeof(large_signal_big_endian));
 
-  ss.write(mpvd_box_name, sizeof(mpvd_box_name));
+  ss.write(kMpvdBoxName, sizeof(kMpvdBoxName));
 
   char mpvd_box_length_big_endian[8];
   uint64_t mpvd_box_length = sizeof(large_signal_big_endian) +
-                             sizeof(mpvd_box_name) +
+                             sizeof(kMpvdBoxName) +
                              sizeof(mpvd_box_length_big_endian) + video_length;
 
   absl::big_endian::Store64(mpvd_box_length_big_endian, mpvd_box_length);
