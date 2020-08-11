@@ -21,11 +21,6 @@
 #include "libmphoto/demuxer/image_info.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  // Input less than 1mb
-  if (size > 1000000) {
-    return 0;
-  }
-
   libmphoto::Demuxer demuxer;
 
   std::string motion_photo(reinterpret_cast<const char*>(data), size);

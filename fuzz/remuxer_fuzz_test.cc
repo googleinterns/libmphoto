@@ -20,11 +20,6 @@
 #include "libmphoto/remuxer/remuxer.h"
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
-  // Input less than 1mb
-  if (size > 1000000) {
-    return 0;
-  }
-
   libmphoto::Remuxer remuxer;
 
   std::string media_stream(reinterpret_cast<const char*>(data), size);
@@ -40,6 +35,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   if (!remuxer.Finalize(&motion_photo).ok()) {
     return 0;
   }
-  
+
   return 0;
 }
