@@ -75,4 +75,4 @@ remuxer.Finalize(&motion_photo);
 This library has a set of unit tests that verify demuxing and remuxing functionality against a set of golden images. These tests depend on [googletest](http://github.com/google/googletest) and can be run with bazel using `bazel test //tests/...`.
 
 ## Fuzzing
-This library is setup to be fuzz tested with [libfuzzer](https://llvm.org/docs/LibFuzzer.html) through [bazel-rules-fuzzing](https://github.com/googleinterns/bazel-rules-fuzzing). Fuzzing can be run using `bazel test --config=(asan|msan)-libfuzzer //fuzz:(demuxer|remuxer)_fuzz_test`
+This library is setup to be fuzz tested with [libfuzzer](https://llvm.org/docs/LibFuzzer.html) through [bazel-rules-fuzzing](https://github.com/googleinterns/bazel-rules-fuzzing). Fuzzing can be run using `bazel test --config=(asan|msan)-libfuzzer //fuzz:(demuxer|remuxer)_fuzz_test`.
