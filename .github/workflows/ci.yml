@@ -26,7 +26,3 @@ jobs:
     - name: Build
       run: |
         "${GITHUB_WORKSPACE}/bin/bazel" build //libmphoto/...
-        
-    - name: Test
-      run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test //tests/... --test_output=all
