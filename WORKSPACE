@@ -55,3 +55,14 @@ http_archive(
     strip_prefix = "x265-3.4",
     urls = ["https://github.com/videolan/x265/archive/3.4.zip"],
 )
+
+http_archive(
+    name = "rules_fuzzing",
+    sha256 = "8d98c444600ce25082b320a3364150806109fe33620a4e1c5bb856861591acb9",
+    strip_prefix = "bazel-rules-fuzzing-8520424714e827ff0360283e3237e35c8723d931",
+    urls = ["https://github.com/googleinterns/bazel-rules-fuzzing/archive/8520424714e827ff0360283e3237e35c8723d931.zip"],
+)
+
+load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
+
+rules_fuzzing_dependencies()
