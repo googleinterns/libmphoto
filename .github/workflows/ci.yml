@@ -29,4 +29,4 @@ jobs:
         
     - name: Test
       run: |
-        "${GITHUB_WORKSPACE}/bin/bazel" test //tests/...
+        "${GITHUB_WORKSPACE}/bin/bazel" test //tests/... --test_output=all
